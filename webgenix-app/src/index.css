@@ -1,0 +1,510 @@
+@import "tailwindcss";
+
+/* ============================================
+   WEBGENIX THEME – Design System v1.0.0
+   ============================================ */
+
+:root {
+  /* Dark neutral base */
+  --color-dark-900: #0a0a0a;
+  --color-dark-800: #141414;
+  --color-dark-700: #1a1a1a;
+  --color-dark-600: #262626;
+
+  /* Text hierarchy */
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1a1;
+  --color-text-muted: #525252;
+
+  /* Accent */
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-accent-light: #60a5fa;
+
+  /* Semantic */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@theme {
+  --color-dark-900: var(--color-dark-900);
+  --color-dark-800: var(--color-dark-800);
+  --color-dark-700: var(--color-dark-700);
+  --color-dark-600: var(--color-dark-600);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-light: var(--color-accent-light);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+
+  --font-sans: var(--font-sans);
+}
+
+/* ── Base ──────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-dark-900);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.2;
+  font-weight: 600;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+a,
+button {
+  transition: all 0.2s ease;
+}
+
+section[id] {
+  scroll-margin-top: 100px;
+}
+
+/* ── Webgenix Utility Classes ──────────────── */
+.container-webgenix {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+@media (min-width: 1024px) {
+  .container-webgenix {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+.section-webgenix {
+  padding-top: 96px;
+  padding-bottom: 96px;
+}
+
+@media (min-width: 1024px) {
+  .section-webgenix {
+    padding-top: 128px;
+    padding-bottom: 128px;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-webgenix {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .container-webgenix {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+.section-header-webgenix {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+/* ── Cards ─────────────────────────────────── */
+.card-webgenix {
+  background-color: var(--color-dark-800);
+  border: 1px solid var(--color-dark-600);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.card-webgenix-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-webgenix-hover:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+.card-glass-webgenix {
+  background: linear-gradient(135deg, rgba(20, 20, 20, 0.7) 0%, rgba(10, 10, 10, 0.8) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Buttons ───────────────────────────────── */
+.btn-webgenix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-webgenix:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-dark-900), 0 0 0 4px var(--color-accent);
+}
+
+.btn-webgenix:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary-webgenix {
+  background-color: var(--color-accent);
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2);
+}
+
+.btn-primary-webgenix:hover {
+  background-color: var(--color-accent-hover);
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary-webgenix {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-dark-600);
+}
+
+.btn-secondary-webgenix:hover {
+  background-color: var(--color-dark-700);
+  border-color: #404040;
+}
+
+.btn-sm-webgenix {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+}
+
+.btn-md-webgenix {
+  padding: 12px 24px;
+  font-size: 1rem;
+}
+
+.btn-lg-webgenix {
+  padding: 16px 32px;
+  font-size: 1.125rem;
+}
+
+/* ── Badges ────────────────────────────────── */
+.badge-webgenix {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid;
+}
+
+.badge-ai-webgenix {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: var(--color-accent);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.badge-popular-webgenix {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--color-success);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.badge-coming-soon-webgenix {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: rgba(245, 158, 11, 0.8);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.badge-default-webgenix {
+  background-color: rgba(38, 38, 38, 0.8);
+  color: var(--color-text-secondary);
+  border-color: rgba(38, 38, 38, 1);
+}
+
+/* ── Header ────────────────────────────────── */
+.header-webgenix {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: rgba(10, 10, 10, 0.9);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(38, 38, 38, 0.5);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  height: 80px;
+}
+
+.main-webgenix {
+  min-height: 100vh;
+  background-color: var(--color-dark-900);
+  padding-top: 80px;
+}
+
+/* ── Text utilities ────────────────────────── */
+.text-gradient-webgenix {
+  background: linear-gradient(to right, var(--color-accent), #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Grid pattern ──────────────────────────── */
+.grid-pattern-webgenix {
+  background-image:
+    linear-gradient(to right, rgba(128, 128, 128, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(128, 128, 128, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Form ──────────────────────────────────── */
+.input-webgenix {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.9375rem;
+  background-color: rgba(10, 10, 10, 0.5);
+  border: 1.5px solid var(--color-dark-600);
+  color: var(--color-text-primary);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-webgenix::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.input-webgenix:hover {
+  border-color: var(--color-dark-500);
+}
+
+.input-webgenix:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background-color: rgba(10, 10, 10, 0.8);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+/* Handle Autofill */
+.input-webgenix:-webkit-autofill,
+.input-webgenix:-webkit-autofill:hover,
+.input-webgenix:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text-primary);
+  -webkit-box-shadow: 0 0 0px 1000px #1a1a1a inset;
+  transition: background-color 5000s ease-in-out 0s;
+  border: 1.5px solid var(--color-accent);
+}
+
+.checkbox-webgenix {
+  appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 0.375rem;
+  border: 1.5px solid var(--color-dark-600);
+  background-color: var(--color-dark-700);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.checkbox-webgenix:checked {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.checkbox-webgenix:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 0.25rem;
+  height: 0.5rem;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.checkbox-webgenix:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-dark-900), 0 0 0 4px var(--color-accent);
+}
+
+/* ── Animations ────────────────────────────── */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-fast {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+  }
+}
+
+@keyframes bounce-slow {
+
+  0%,
+  100% {
+    transform: translateY(-4px);
+  }
+
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+.animate-fade-in-webgenix {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-slide-up-webgenix {
+  animation: slide-up 0.7s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
+}
+
+/* delay helpers */
+.delay-100 {
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+  opacity: 0;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+  opacity: 0;
+}
+
+/* ── Accessibility ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@media (prefers-contrast: high) {
+
+  .card-webgenix,
+  .card-glass-webgenix {
+    border-width: 2px;
+  }
+
+  .btn-primary-webgenix {
+    border: 2px solid white;
+  }
+}
