@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { User, LogOut } from 'lucide-react';
+import { useCart } from '../context/CartContext.jsx';
+import { User, LogOut, ShoppingCart } from 'lucide-react';
 
 const navLinks = [
-  { label: 'Services', href: '/#services' },
+  { label: 'Services', href: '/store' },
   { label: 'About', href: '/#about' },
   { label: 'Contact', href: '/#contact' },
 ];
@@ -13,7 +14,9 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
+  const { getCartItemCount } = useCart();
   const navigate = useNavigate();
+  const cartCount = getCartItemCount();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -61,6 +64,17 @@ export default function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
+          <Link to="/store" className="p-2 text-text-secondary hover:text-text-primary transition-colors" title="Cart">
+            <div className="relative">
+              <ShoppingCart size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </div>
+          </Link>
+          
           {isAuthenticated ? (
             <>
               <Link to="/dashboard" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors">

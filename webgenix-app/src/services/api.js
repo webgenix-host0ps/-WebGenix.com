@@ -2,6 +2,21 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Token refresh state
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+// Subscribe to token refresh
+const subscribeTokenRefresh = (callback) => {
+    refreshSubscribers.push(callback);
+};
+
+// Notify all subscribers with new token
+const onTokenRefreshed = (token) => {
+    refreshSubscribers.forEach(callback => callback(token));
+    refreshSubscribers = [];
+};
+
 // Create axios instance
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -35,6 +50,18 @@ api.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
+            // If refresh is already in progress, queue this request
+            if (isRefreshing) {
+                return new Promise(resolve => {
+                    subscribeTokenRefresh(token => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        resolve(api(originalRequest));
+                    });
+                });
+            }
+
+            isRefreshing = true;
+
             try {
                 // Try to refresh token
                 const response = await axios.post(
@@ -46,7 +73,10 @@ api.interceptors.response.use(
                 const { accessToken } = response.data.data;
                 localStorage.setItem('accessToken', accessToken);
 
-                // Retry original request with new token
+                // Notify all queued requests
+                onTokenRefreshed(accessToken);
+
+                // Retry original request
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                 return api(originalRequest);
             } catch (refreshError) {
@@ -55,6 +85,8 @@ api.interceptors.response.use(
                 localStorage.removeItem('user');
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
             }
         }
 

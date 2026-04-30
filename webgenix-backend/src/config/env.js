@@ -1,13 +1,19 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from the backend directory
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 export const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     PORT: parseInt(process.env.PORT, 10) || 5000,
 
     // MongoDB
-    MONGODB_URI: process.env.MONGODB_URI,
+    MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/webgenix',
 
     // JWT
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
@@ -31,4 +37,9 @@ export const env = {
     // Cookie options
     COOKIE_SECURE: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
+
+    // Payment Gateways
+    RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
+    RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET,
+    RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET,
 };

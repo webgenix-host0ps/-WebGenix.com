@@ -54,6 +54,11 @@ export const loginUser = async ({ email, password }, req) => {
         throw new ApiError(401, 'Invalid email or password');
     }
 
+    // Enforce email verification
+    if (!user.emailVerified) {
+        throw new ApiError(403, 'Please verify your email before logging in');
+    }
+
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
@@ -217,8 +222,13 @@ export const resetPassword = async (token, newPassword, req) => {
         throw new ApiError(400, 'Token is required');
     }
 
-    // Find all active password reset tokens for this user type
-    const authTokens = await AuthToken.find({ type: 'password_reset', expiresAt: { $gt: new Date() } });
+    // Find password reset tokens within a limited time window (last 2 hours max)
+    const timeWindow = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const authTokens = await AuthToken.find({
+        type: 'password_reset',
+        expiresAt: { $gt: new Date() },
+        createdAt: { $gt: timeWindow }
+    });
     if (!authTokens || authTokens.length === 0) {
         throw new ApiError(400, 'Invalid or expired token');
     }
@@ -266,8 +276,13 @@ export const verifyEmail = async (token, req) => {
         throw new ApiError(400, 'Token is required');
     }
 
-    // Find all active email verification tokens
-    const authTokens = await AuthToken.find({ type: 'email_verification', expiresAt: { $gt: new Date() } });
+    // Find email verification tokens within a limited time window (last 48 hours max)
+    const timeWindow = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const authTokens = await AuthToken.find({
+        type: 'email_verification',
+        expiresAt: { $gt: new Date() },
+        createdAt: { $gt: timeWindow }
+    });
     if (!authTokens || authTokens.length === 0) {
         throw new ApiError(400, 'Invalid or expired token');
     }
@@ -303,4 +318,18 @@ export const verifyEmail = async (token, req) => {
     });
 
     return true;
+};
+
+export const updateUser = async (userId, updateData) => {
+    const user = await User.findByIdAndUpdate(
+        userId,
+        { $set: updateData },
+        { new: true, runValidators: true }
+    );
+    
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+    
+    return user.toObject();
 };

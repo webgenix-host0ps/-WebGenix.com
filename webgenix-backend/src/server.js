@@ -2,6 +2,7 @@ import app from './app.js';
 import { connectDB } from './config/db.js';
 import { env } from './config/env.js';
 import logger from './utils/logger.js';
+import { initCrons } from './services/cron.service.js';
 
 const startServer = async () => {
     try {
@@ -9,6 +10,7 @@ const startServer = async () => {
 
         const server = app.listen(env.PORT, () => {
             logger.info(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
+            initCrons();
         });
 
         // Graceful shutdown

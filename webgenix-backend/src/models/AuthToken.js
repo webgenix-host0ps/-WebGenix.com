@@ -26,5 +26,6 @@ const authTokenSchema = new Schema({
 }, { timestamps: { createdAt: true, updatedAt: false } });
 
 authTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+authTokenSchema.index({ type: 1, expiresAt: 1, createdAt: 1 });
 
 export default mongoose.model('AuthToken', authTokenSchema);

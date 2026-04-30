@@ -8,15 +8,25 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Initialize auth state from storage
+    // Initialize auth state from storage and validate token
     useEffect(() => {
-        const initAuth = () => {
+        const initAuth = async () => {
             const storedUser = authService.getStoredUser();
             const hasToken = authService.isAuthenticated();
 
             if (hasToken && storedUser) {
-                setUser(storedUser);
-                setIsAuthenticated(true);
+                try {
+                    // Validate token by fetching current user
+                    const response = await authService.getCurrentUser();
+                    const { user: currentUser } = response.data;
+                    setUser(currentUser);
+                    setIsAuthenticated(true);
+                } catch (error) {
+                    console.error('Token validation failed:', error);
+                    // Token invalid, clear storage
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('user');
+                }
             }
             setIsLoading(false);
         };

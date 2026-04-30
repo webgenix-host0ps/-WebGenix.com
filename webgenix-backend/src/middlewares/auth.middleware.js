@@ -11,7 +11,17 @@ export const authMiddleware = asyncHandler(async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = verifyAccessToken(token);
+    
+    let decoded;
+    try {
+        decoded = verifyAccessToken(token);
+    } catch (error) {
+        throw new ApiError(401, error.message || 'Invalid or expired token');
+    }
+
+    if (!decoded || !decoded.sub) {
+        throw new ApiError(401, 'Invalid token payload');
+    }
 
     // Fetch user to ensure they still exist and are active
     const user = await User.findById(decoded.sub).select('-password');

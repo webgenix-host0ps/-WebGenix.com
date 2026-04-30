@@ -12,6 +12,6 @@ export const updateProfile = asyncHandler(async (req, res) => {
 });
 
 export const changePassword = asyncHandler(async (req, res) => {
-    await userService.changePassword(req.userId, req.body.oldPassword, req.body.newPassword);
+    await userService.changePassword(req.userId, req.body.oldPassword, req.body.newPassword, req);
     res.json({ success: true, message: 'Password changed successfully' });
 });

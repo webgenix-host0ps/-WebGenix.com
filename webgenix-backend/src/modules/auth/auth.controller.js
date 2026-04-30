@@ -106,3 +106,27 @@ export const getMe = asyncHandler(async (req, res) => {
         data: { user: req.user },
     });
 });
+
+// Update user profile
+export const updateProfile = asyncHandler(async (req, res) => {
+    const { name, phone, clientProfile } = req.body;
+    const userId = req.user._id;
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (phone !== undefined) updateData.phone = phone;
+    if (clientProfile) {
+        updateData.clientProfile = {
+            ...req.user.clientProfile,
+            ...clientProfile
+        };
+    }
+
+    const user = await authService.updateUser(userId, updateData);
+
+    res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        data: { user },
+    });
+});

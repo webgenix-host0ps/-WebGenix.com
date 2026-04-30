@@ -1,5 +1,10 @@
 import api from './api.js';
 
+// Simple cache for user data
+let userCache = null;
+let userCacheTime = null;
+const CACHE_DURATION = 60000; // 1 minute
+
 export const authService = {
     // Register new user
     async register(userData) {
@@ -15,6 +20,10 @@ export const authService = {
         // Store auth data
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('user', JSON.stringify(user));
+        
+        // Clear cache to get fresh data
+        userCache = null;
+        userCacheTime = null;
 
         return response.data;
     },
@@ -26,13 +35,32 @@ export const authService = {
         } finally {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
+            // Clear cache
+            userCache = null;
+            userCacheTime = null;
         }
     },
 
-    // Get current user
+    // Get current user with caching
     async getCurrentUser() {
+        // Return cached data if still valid
+        if (userCache && userCacheTime && (Date.now() - userCacheTime) < CACHE_DURATION) {
+            return userCache;
+        }
+        
         const response = await api.get('/auth/me');
+        
+        // Cache the response
+        userCache = response.data;
+        userCacheTime = Date.now();
+        
         return response.data;
+    },
+    
+    // Clear user cache (call after login/logout/update)
+    clearUserCache() {
+        userCache = null;
+        userCacheTime = null;
     },
 
     // Refresh access token
@@ -75,5 +103,18 @@ export const authService = {
     getStoredUser() {
         const user = localStorage.getItem('user');
         return user ? JSON.parse(user) : null;
+    },
+
+    // Update user profile
+    async updateProfile(profileData) {
+        const response = await api.patch('/auth/profile', profileData);
+        // Update stored user data
+        if (response.data?.data?.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        }
+        // Clear cache to get fresh data
+        userCache = null;
+        userCacheTime = null;
+        return response.data;
     },
 };
