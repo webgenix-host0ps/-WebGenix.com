@@ -213,16 +213,12 @@ invoiceSchema.index({ orderId: 1 });
 invoiceSchema.pre('save', async function(next) {
     if (this.isNew && !this.invoiceNumber) {
         try {
-            // Get or create counter
-            let counter = await mongoose.model('Counter').findById('invoice');
-            if (!counter) {
-                counter = await mongoose.model('Counter').create({
-                    _id: 'invoice',
-                    seq: 0
-                });
-            }
-            counter.seq += 1;
-            await counter.save();
+            // Atomic counter update
+            const counter = await mongoose.model('Counter').findByIdAndUpdate(
+                'invoice',
+                { $inc: { seq: 1 } },
+                { new: true, upsert: true }
+            );
             
             this.invoiceNumber = `INV-${new Date().getFullYear()}-${counter.seq.toString().padStart(6, '0')}`;
         } catch (err) {

@@ -12,12 +12,13 @@ router.post('/razorpay', express.raw({ type: 'application/json' }), async (req, 
     const secret = env.RAZORPAY_WEBHOOK_SECRET;
     
     const shasum = crypto.createHmac('sha256', secret);
-    shasum.update(JSON.stringify(req.body));
+    const payloadString = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body);
+    shasum.update(payloadString);
     const digest = shasum.digest('hex');
     
     if (digest === req.headers['x-razorpay-signature']) {
         // Process webhook
-        const event = req.body;
+        const event = Buffer.isBuffer(req.body) ? JSON.parse(req.body.toString('utf8')) : req.body;
         console.log('Razorpay webhook received:', event.event);
         
         try {

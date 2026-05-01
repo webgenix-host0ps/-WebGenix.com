@@ -200,16 +200,12 @@ orderSchema.index({ 'items.productId': 1 });
 orderSchema.pre('save', async function(next) {
     if (this.isNew && !this.orderNumber) {
         try {
-            // Get or create counter
-            let counter = await mongoose.model('Counter').findById('order');
-            if (!counter) {
-                counter = await mongoose.model('Counter').create({
-                    _id: 'order',
-                    seq: 0
-                });
-            }
-            counter.seq += 1;
-            await counter.save();
+            // Atomic counter update
+            const counter = await mongoose.model('Counter').findByIdAndUpdate(
+                'order',
+                { $inc: { seq: 1 } },
+                { new: true, upsert: true }
+            );
             
             this.orderNumber = `ORD-${new Date().getFullYear()}-${counter.seq.toString().padStart(6, '0')}`;
         } catch (err) {

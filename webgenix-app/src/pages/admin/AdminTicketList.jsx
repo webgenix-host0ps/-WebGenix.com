@@ -25,8 +25,12 @@ export default function AdminTicketList() {
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const response = await adminService.getTickets({ status: statusFilter, search: debouncedSearch });
+      const response = await adminService.getTickets({ status: statusFilter, search: debouncedSearch, page, limit: 10 });
       let filteredTickets = response.data?.tickets || [];
+      
+      if (response.data?.meta?.pages) {
+        setTotalPages(response.data.meta.pages);
+      }
       
       if (!statusFilter) {
         if (activeTab === 'active') {

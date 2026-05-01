@@ -242,6 +242,9 @@ export const calculateProration = asyncHandler(async (req, res) => {
 
 export const validatePromoCode = asyncHandler(async (req, res) => {
     const { code } = req.body;
+    if (!code || typeof code !== 'string') {
+        throw new ApiError(400, 'Invalid or missing promo code');
+    }
     const promo = await PromoCode.findOne({ code: code.toUpperCase() });
     
     if (!promo || !promo.isActive) {

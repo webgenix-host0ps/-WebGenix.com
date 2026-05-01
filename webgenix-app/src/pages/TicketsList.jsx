@@ -16,7 +16,7 @@ export default function TicketsList() {
     const fetchTickets = async () => {
         try {
             setIsLoading(true);
-            const response = await getTickets(filters);
+            const response = await getTickets({ ...filters, limit: 100 });
             // ticket.service returns backend response directly: { success, data: tickets[], meta }
             let filtered = response.data || [];
             console.log('Tickets from API:', filtered);

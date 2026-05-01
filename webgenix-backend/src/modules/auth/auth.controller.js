@@ -117,7 +117,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
     if (phone !== undefined) updateData.phone = phone;
     if (clientProfile) {
         updateData.clientProfile = {
-            ...req.user.clientProfile,
+            ...(req.user.clientProfile?.toObject ? req.user.clientProfile.toObject() : req.user.clientProfile),
             ...clientProfile
         };
     }

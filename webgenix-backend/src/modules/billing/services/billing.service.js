@@ -44,11 +44,20 @@ export const createOrder = async (orderData, req) => {
         
         subtotal += itemTotal;
         
-        // Add addon prices
+        // Add addon prices securely
         if (item.addons?.length > 0) {
             for (const addon of item.addons) {
-                subtotal += addon.price;
-                orderItems[orderItems.length - 1].total += addon.price;
+                const addonProduct = await Product.findById(addon.addonId || addon._id);
+                if (addonProduct && addonProduct.status === 'active') {
+                    const addonPricing = addonProduct.pricing?.find(p => p.cycle === item.cycle && p.isActive) || addonProduct.pricing?.[0];
+                    if (addonPricing) {
+                        const addonPrice = addonPricing.price;
+                        subtotal += addonPrice;
+                        orderItems[orderItems.length - 1].total += addonPrice;
+                        addon.price = addonPrice;
+                        addon.name = addonProduct.name;
+                    }
+                }
             }
         }
     }

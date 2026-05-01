@@ -14,7 +14,7 @@ export default function Store() {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const response = await billingService.getProducts({ type: 'hosting', status: 'active' });
+        const response = await billingService.getProducts({ type: 'hosting', status: 'active', limit: 100 });
         const allProducts = response.data || [];
         
         let filtered = allProducts;
