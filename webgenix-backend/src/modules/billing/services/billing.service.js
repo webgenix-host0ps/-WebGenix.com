@@ -236,77 +236,80 @@ export const listAllInvoices = async (filters, pagination) => {
 };
 
 export const markInvoiceAsPaid = async (invoiceId, paymentData, req) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    console.log('[BillingService] markInvoiceAsPaid called:', { invoiceId, paymentMethod: paymentData.paymentMethod });
     
-    try {
-        const invoice = await Invoice.findById(invoiceId).session(session);
-        if (!invoice) {
-            throw new ApiError(404, 'Invoice not found');
-        }
-        
-        if (invoice.status === INVOICE_STATUS.PAID) {
-            throw new ApiError(400, 'Invoice already paid');
-        }
-        
-        invoice.status = INVOICE_STATUS.PAID;
-        invoice.datePaid = new Date();
-        invoice.paymentMethod = paymentData.paymentMethod;
-        invoice.transactionId = paymentData.transactionId;
-        invoice.amountPaid = invoice.total;
-        invoice.amountDue = 0;
-        invoice.paymentAttempts += 1;
-        invoice.lastPaymentAttempt = new Date();
-        
-        await invoice.save({ session });
-        
-        // Update order status if exists
-        if (invoice.orderId) {
-            await Order.findByIdAndUpdate(invoice.orderId, {
-                status: ORDER_STATUS.COMPLETED,
-                paymentStatus: 'paid',
-            }, { session });
-            
-            // Create services
-            await createServicesFromOrder(invoice.orderId, session);
-        }
-        
-        // Add to history
-        invoice.history.push({
-            date: new Date(),
-            action: 'paid',
-            description: `Invoice paid via ${paymentData.paymentMethod}`,
-            userId: req?.userId,
-        });
-        
-        await invoice.save({ session });
-        
-        await session.commitTransaction();
-        
-        await logAction({
-            userId: invoice.userId,
-            action: 'invoice.paid',
-            metadata: { invoiceId: invoice._id, amount: invoice.total },
-            req,
-        });
-        
-        return invoice;
-    } catch (error) {
-        await session.abortTransaction();
-        throw error;
-    } finally {
-        session.endSession();
+    // NOTE: No transactions — local MongoDB standalone does not support them.
+    // Operations are sequential. If a step fails, the error is logged and re-thrown.
+    
+    console.log('[BillingService] Finding invoice:', invoiceId);
+    const invoice = await Invoice.findById(invoiceId);
+    if (!invoice) {
+        throw new ApiError(404, 'Invoice not found');
     }
+    
+    console.log('[BillingService] Invoice found, current status:', invoice.status);
+    
+    if (invoice.status === INVOICE_STATUS.PAID) {
+        console.log('[BillingService] Invoice already paid');
+        throw new ApiError(400, 'Invoice already paid');
+    }
+    
+    invoice.status = INVOICE_STATUS.PAID;
+    invoice.datePaid = new Date();
+    invoice.paymentMethod = paymentData.paymentMethod;
+    invoice.transactionId = paymentData.transactionId;
+    invoice.amountPaid = invoice.total;
+    invoice.amountDue = 0;
+    invoice.paymentAttempts = (invoice.paymentAttempts || 0) + 1;
+    invoice.lastPaymentAttempt = new Date();
+    
+    if (!invoice.history) invoice.history = [];
+    invoice.history.push({
+        date: new Date(),
+        action: 'paid',
+        description: `Invoice paid via ${paymentData.paymentMethod}`,
+        userId: req?.userId,
+    });
+    
+    console.log('[BillingService] Saving invoice...');
+    await invoice.save();
+    console.log('[BillingService] Invoice saved successfully');
+    
+    // Update order status if exists
+    if (invoice.orderId) {
+        await Order.findByIdAndUpdate(invoice.orderId, {
+            status: ORDER_STATUS.COMPLETED,
+            paymentStatus: 'paid',
+        });
+        
+        // Create services from order items
+        try {
+            await createServicesFromOrder(invoice.orderId);
+        } catch (svcErr) {
+            // Log but don't fail the payment — services can be provisioned manually
+            console.error('[BillingService] Failed to create services (non-fatal):', svcErr.message);
+        }
+    }
+    
+    await logAction({
+        userId: invoice.userId,
+        action: 'invoice.paid',
+        metadata: { invoiceId: invoice._id, amount: invoice.total },
+        req,
+    });
+    
+    console.log('[BillingService] markInvoiceAsPaid completed successfully');
+    return invoice;
 };
 
-export const createServicesFromOrder = async (orderId, session) => {
-    const order = await Order.findById(orderId).session(session);
+export const createServicesFromOrder = async (orderId) => {
+    const order = await Order.findById(orderId);
     if (!order) return;
     
     const services = [];
     
     for (const item of order.items) {
-        const product = await Product.findById(item.productId).session(session);
+        const product = await Product.findById(item.productId);
         
         // Calculate next due date
         const nextDueDate = new Date();
@@ -321,7 +324,7 @@ export const createServicesFromOrder = async (orderId, session) => {
             configuration: item.configuration,
             domain: item.domain,
             registrationPeriod: item.registrationPeriod,
-            status: 'pending', // Will be activated by provisioning
+            status: 'active', // Activated immediately on payment success
             cycle: item.cycle,
             firstPaymentAmount: item.unitPrice,
             recurringAmount: item.unitPrice,
@@ -336,7 +339,7 @@ export const createServicesFromOrder = async (orderId, session) => {
                 status: 'active',
                 nextDueDate,
             })),
-        }], { session });
+        }]);
         
         services.push(...service);
         
@@ -344,10 +347,11 @@ export const createServicesFromOrder = async (orderId, session) => {
         item.serviceId = service[0]._id;
     }
     
-    await order.save({ session });
+    await order.save();
     
     return services;
 };
+
 
 export const getOrderById = async (orderId, userId) => {
     const order = await Order.findById(orderId);

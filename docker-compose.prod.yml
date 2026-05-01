@@ -1,0 +1,54 @@
+# Production overrides for docker-compose.yml
+services:
+  mongo:
+    # Remove port exposure in production
+    ports: []
+    # Add resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    # Auto backup volume
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+
+  backend:
+    # Remove port exposure in production (only accessible via nginx)
+    ports: []
+    # Production environment
+    environment:
+      NODE_ENV: production
+      COOKIE_SECURE: "true"
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    # Restart policy
+    restart: always
+
+  frontend:
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  nginx:
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    restart: always

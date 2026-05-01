@@ -154,6 +154,9 @@ productSchema.index({ category: 1, status: 1 });
 
 // Virtual for default pricing
 productSchema.virtual('defaultPricing').get(function() {
+    if (!this.pricing || !Array.isArray(this.pricing) || this.pricing.length === 0) {
+        return null;
+    }
     return this.pricing.find(p => p.isDefault) || this.pricing[0];
 });
 

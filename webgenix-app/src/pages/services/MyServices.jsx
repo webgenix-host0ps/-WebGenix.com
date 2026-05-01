@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Server, Globe, Shield, Mail, MoreVertical, RefreshCw, 
   AlertCircle, CheckCircle, Clock, XCircle, Loader2,
@@ -29,10 +29,18 @@ export default function MyServices() {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     fetchServices();
   }, []);
+
+  // Auto-refresh if redirected from a successful payment
+  useEffect(() => {
+    if (searchParams.get('refresh') === 'true') {
+      setTimeout(() => fetchServices(), 1500);
+    }
+  }, [searchParams]);
 
   const fetchServices = async () => {
     try {
@@ -89,12 +97,21 @@ export default function MyServices() {
           <h1 className="text-3xl font-bold text-white">My Services</h1>
           <p className="text-white/60 mt-1">Manage your active services and subscriptions</p>
         </div>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="btn-webgenix bg-accent hover:bg-accent/90"
-        >
-          Browse Marketplace
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={fetchServices}
+            className="btn-webgenix bg-dark-800 border border-white/10 hover:border-white/20"
+            title="Refresh services"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => navigate('/dashboard/marketplace')}
+            className="btn-webgenix bg-accent hover:bg-accent/90"
+          >
+            Browse Marketplace
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -152,7 +169,7 @@ export default function MyServices() {
               : `You don't have any ${filter} services at the moment.`}
           </p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/dashboard/marketplace')}
             className="btn-webgenix bg-accent hover:bg-accent/90"
           >
             Browse Services

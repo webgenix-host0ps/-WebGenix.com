@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+!.env.docker
 
 # Logs
 logs
@@ -23,3 +24,12 @@ Thumbs.db
 # Build outputs
 dist/
 build/
+
+# Docker
+ssl/
+backups/
+*.pem
+
+# Graphify
+.graphify_*
+graphify-out/

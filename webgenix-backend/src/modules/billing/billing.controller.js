@@ -264,13 +264,13 @@ export const validatePromoCode = asyncHandler(async (req, res) => {
 });
 
 export const getUserServices = asyncHandler(async (req, res) => {
-    const services = await Service.find({ user: req.user.id })
-        .populate('product', 'name slug type')
+    const services = await Service.find({ userId: req.userId })
+        .populate('productId')
         .sort({ createdAt: -1 });
 
     res.json({
         success: true,
-        data: services,
+        data: { services },
     });
 });
 

@@ -67,57 +67,121 @@ export const createRazorpayOrder = async (invoiceId, userId) => {
 };
 
 export const verifyRazorpayPayment = async (razorpayOrderId, razorpayPaymentId, razorpaySignature) => {
-    // Verify signature
-    const crypto = await import('crypto');
-    const generatedSignature = crypto
-        .createHmac('sha256', env.RAZORPAY_KEY_SECRET)
-        .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-        .digest('hex');
-    
-    if (generatedSignature !== razorpaySignature) {
-        throw new ApiError(400, 'Invalid payment signature');
-    }
-    
-    // Get payment details from Razorpay
-    const razorpay = getRazorpayInstance();
-    const razorpayPayment = await razorpay.payments.fetch(razorpayPaymentId);
-    
-    // Find our payment record
-    const payment = await Payment.findOne({
-        gatewayTransactionId: razorpayOrderId,
-    });
-    
-    if (!payment) {
-        throw new ApiError(404, 'Payment not found');
-    }
-    
-    if (razorpayPayment.status === 'captured') {
-        payment.status = PAYMENT_STATUS.COMPLETED;
-        payment.gatewayReferenceId = razorpayPaymentId;
-        payment.processedAt = new Date();
+    try {
+        console.log('[Razorpay] Starting verification:', { razorpayOrderId, razorpayPaymentId });
         
-        if (razorpayPayment.method) {
-            payment.paymentMethod = razorpayPayment.method;
+        // Verify signature first - this confirms Razorpay sent this
+        const crypto = await import('crypto');
+        const generatedSignature = crypto
+            .createHmac('sha256', env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+            .digest('hex');
+        
+        console.log('[Razorpay] Signature check:', { 
+            generated: generatedSignature.substring(0, 10) + '...', 
+            received: razorpaySignature.substring(0, 10) + '...',
+            match: generatedSignature === razorpaySignature 
+        });
+        
+        if (generatedSignature !== razorpaySignature) {
+            throw new ApiError(400, 'Invalid payment signature');
         }
         
-        if (razorpayPayment.card) {
-            payment.cardLast4 = razorpayPayment.card.last4;
-            payment.cardBrand = razorpayPayment.card.network;
+        // Find our payment record by order ID
+        console.log('[Razorpay] Finding payment record in DB...');
+        const payment = await Payment.findOne({
+            gatewayTransactionId: razorpayOrderId,
+        });
+        
+        if (!payment) {
+            console.error('[Razorpay] Payment record not found for order:', razorpayOrderId);
+            throw new ApiError(404, 'Payment not found in our records');
         }
         
-        // Calculate fee (Razorpay typically charges 2%)
-        payment.transactionFee = Math.round(payment.amount * 0.02 * 100) / 100;
+        console.log('[Razorpay] Found payment record:', { 
+            id: payment._id, 
+            invoiceId: payment.invoiceId,
+            currentStatus: payment.status,
+            amount: payment.amount
+        });
+        
+        // Get payment details from Razorpay
+        const razorpay = getRazorpayInstance();
+        console.log('[Razorpay] Fetching payment from Razorpay...');
+        let razorpayPayment = await razorpay.payments.fetch(razorpayPaymentId);
+        console.log('[Razorpay] Razorpay payment status:', razorpayPayment.status);
+        
+        // *** KEY FIX ***
+        // In test mode and many live configs, Razorpay returns 'authorized' (not 'captured').
+        // We must explicitly capture the payment to move money. If already captured, skip.
+        if (razorpayPayment.status === 'authorized') {
+            console.log('[Razorpay] Payment is authorized, capturing now...');
+            try {
+                razorpayPayment = await razorpay.payments.capture(
+                    razorpayPaymentId,
+                    Math.round(payment.amount * 100), // amount in paise
+                    payment.currency || 'INR'
+                );
+                console.log('[Razorpay] Capture successful, new status:', razorpayPayment.status);
+            } catch (captureErr) {
+                console.error('[Razorpay] Capture failed:', captureErr.message);
+                // If capture fails with 'payment already captured', treat as success
+                if (captureErr.error?.code === 'BAD_REQUEST_ERROR' && captureErr.error?.description?.includes('already captured')) {
+                    console.log('[Razorpay] Payment was already captured, proceeding...');
+                    razorpayPayment = await razorpay.payments.fetch(razorpayPaymentId);
+                } else {
+                    throw new ApiError(500, `Payment capture failed: ${captureErr.message}`);
+                }
+            }
+        }
+        
+        // Accept 'captured' as the final success state
+        if (razorpayPayment.status === 'captured') {
+            console.log('[Razorpay] Payment captured, updating record...');
+            
+            payment.status = PAYMENT_STATUS.COMPLETED;
+            payment.gatewayReferenceId = razorpayPaymentId;
+            payment.processedAt = new Date();
+            
+            if (razorpayPayment.method) {
+                payment.paymentMethod = razorpayPayment.method;
+            }
+            
+            if (razorpayPayment.card) {
+                payment.cardLast4 = razorpayPayment.card.last4;
+                payment.cardBrand = razorpayPayment.card.network;
+            }
+            
+            // Use actual fee from Razorpay if available, else estimate
+            payment.transactionFee = razorpayPayment.fee 
+                ? razorpayPayment.fee / 100 
+                : Math.round(payment.amount * 0.02 * 100) / 100;
+            await payment.save();
+            
+            // Convert to plain object and ensure invoiceId is present
+            const paymentObj = payment.toObject();
+            console.log('[Razorpay] Payment updated successfully, invoiceId:', paymentObj.invoiceId);
+            
+            return { success: true, payment: paymentObj };
+        }
+        
+        // Payment is in a non-success state (failed, refunded, etc.)
+        console.log('[Razorpay] Payment not captured, final status:', razorpayPayment.status);
+        payment.status = PAYMENT_STATUS.FAILED;
+        payment.failedAt = new Date();
+        payment.errorMessage = razorpayPayment.error_description || `Payment status: ${razorpayPayment.status}`;
         await payment.save();
         
-        return { success: true, payment };
+        return { success: false, payment: payment.toObject() };
+    } catch (error) {
+        console.error('[Razorpay] Verification error details:', {
+            message: error.message,
+            stack: error.stack,
+            razorpayOrderId,
+            razorpayPaymentId
+        });
+        throw error;
     }
-    
-    payment.status = PAYMENT_STATUS.FAILED;
-    payment.failedAt = new Date();
-    payment.errorMessage = razorpayPayment.error_description || 'Payment failed';
-    await payment.save();
-    
-    return { success: false, payment };
 };
 
 export const handleRazorpayWebhook = async (payload) => {
@@ -269,6 +333,7 @@ export const requestRefund = async (paymentId, amount, reason, req) => {
     }
     
     // Process refund through Razorpay
+    const razorpay = getRazorpayInstance();
     const refund = await razorpay.payments.refund(payment.gatewayReferenceId, {
         amount: Math.round((amount || payment.amount) * 100),
         notes: {

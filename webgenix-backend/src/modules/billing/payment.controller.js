@@ -20,29 +20,63 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
 
 export const verifyPayment = asyncHandler(async (req, res) => {
     const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
-    const result = await razorpayService.verifyRazorpayPayment(
-        razorpayOrderId, 
-        razorpayPaymentId, 
-        razorpaySignature
-    );
     
-    if (result.success) {
-        const invoice = await billingService.markInvoiceAsPaid(
-            result.payment.invoiceId,
-            {
-                paymentMethod: 'razorpay',
-                transactionId: result.payment.gatewayReferenceId,
-            },
-            req
+    console.log('[PaymentController] Verifying payment:', { razorpayOrderId, razorpayPaymentId });
+    
+    try {
+        // Validate required fields
+        if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+            throw new ApiError(400, 'Missing required payment verification data');
+        }
+        
+        const result = await razorpayService.verifyRazorpayPayment(
+            razorpayOrderId, 
+            razorpayPaymentId, 
+            razorpaySignature
         );
         
-        res.json({
-            success: true,
-            message: 'Payment successful',
-            data: { payment: result.payment, invoice },
+        console.log('[PaymentController] Verification result:', { 
+            success: result.success, 
+            paymentId: result.payment?._id,
+            invoiceId: result.payment?.invoiceId 
         });
-    } else {
-        throw new ApiError(400, 'Payment verification failed');
+        
+        if (result.success) {
+            // Check if payment has invoiceId
+            let invoiceId = result.payment.invoiceId;
+            if (invoiceId && typeof invoiceId === 'object' && invoiceId._id) {
+                invoiceId = invoiceId._id;
+            }
+            
+            if (!invoiceId) {
+                console.error('[PaymentController] Payment record missing invoiceId. Payment Data:', JSON.stringify(result.payment, null, 2));
+                throw new ApiError(500, 'Payment record incomplete - missing invoice reference in our database');
+            }
+            
+            console.log('[PaymentController] Marking invoice as paid:', invoiceId);
+            
+            const invoice = await billingService.markInvoiceAsPaid(
+                invoiceId,
+                {
+                    paymentMethod: 'razorpay',
+                    transactionId: result.payment.gatewayReferenceId || razorpayPaymentId,
+                },
+                req
+            );
+            
+            console.log('[PaymentController] Invoice marked as paid successfully');
+            
+            res.json({
+                success: true,
+                message: 'Payment successful',
+                data: { payment: result.payment, invoice },
+            });
+        } else {
+            throw new ApiError(400, 'Payment verification failed - payment not captured');
+        }
+    } catch (error) {
+        console.error('[PaymentController] Payment verification error:', error.message, error.stack);
+        throw error;
     }
 });
 

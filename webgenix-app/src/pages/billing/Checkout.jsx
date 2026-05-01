@@ -3,13 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { billingService } from '../../services/billing.service';
 import { authService } from '../../services/auth.service';
 import { CreditCard, Lock, Check, ArrowLeft, Shield, Loader2, ShoppingCart } from 'lucide-react';
+import { useCart } from '../../context/CartContext.jsx';
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const [cart, setCart] = useState(() => {
-    const saved = localStorage.getItem('webgenix_cart');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const { cart, getCartTotal, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [orderProcessing, setOrderProcessing] = useState(false);
   const [promoCode, setPromoCode] = useState('');
@@ -81,15 +79,6 @@ export default function Checkout() {
     });
   };
 
-  const getCartTotal = () => {
-    if (!cart.length) return 0;
-    return cart.reduce((sum, item) => {
-      const price = item.pricing?.[0]?.price || item.price || 0;
-      const setupFee = item.pricing?.[0]?.setupFee || item.setupFee || 0;
-      return sum + (price * (item.quantity || 1)) + setupFee;
-    }, 0);
-  };
-
   const getDiscount = () => {
     if (!promoApplied) return 0;
     const total = getCartTotal();
@@ -148,8 +137,7 @@ export default function Checkout() {
       const { invoice, order } = response.data;
 
       // Clear cart after successful order
-      localStorage.removeItem('webgenix_cart');
-      setCart([]);
+      clearCart();
 
       if (paymentMethod === 'razorpay') {
         // Load Razorpay script if not already loaded
@@ -174,18 +162,24 @@ export default function Checkout() {
             order_id: razorpayOrder.data.orderId,
             handler: async (paymentResult) => {
               try {
-                await billingService.verifyRazorpayPayment({
+                console.log('Payment success, verifying...', paymentResult);
+                const verifyResponse = await billingService.verifyRazorpayPayment({
                   razorpayOrderId: razorpayOrder.data.orderId,
                   razorpayPaymentId: paymentResult.razorpay_payment_id,
                   razorpaySignature: paymentResult.razorpay_signature
                 });
+                console.log('Verification response:', verifyResponse);
+                
                 // Clear cart after successful payment
-                localStorage.removeItem('webgenix_cart');
-                setCart([]);
+                clearCart();
+                setError(''); // Clear any errors
                 navigate('/order-success?status=success&orderId=' + order._id);
               } catch (err) {
                 console.error('Payment verification failed:', err);
-                setError('Payment verification failed. Please contact support.');
+                const errorMsg = err.response?.data?.message || 'Payment verification failed. Please contact support with your Order ID.';
+                setError(errorMsg);
+                // Still navigate to success since payment was made, backend will reconcile
+                navigate('/order-success?status=success&orderId=' + order._id + '&verified=false');
               }
             },
             prefill: {

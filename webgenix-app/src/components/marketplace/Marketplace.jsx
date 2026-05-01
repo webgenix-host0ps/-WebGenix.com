@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Package, Check, Loader2, Server, Globe, Shield, Mail, Zap, Database, Cpu, Users, Search } from 'lucide-react';
 import { billingService } from '../../services/billing.service';
+import { useCart } from '../../context/CartContext.jsx';
 
 const categoryConfig = {
   'Web Hosting': { icon: Server, color: 'bg-blue-500', textColor: 'text-blue-400', gradient: 'from-blue-500/20 to-blue-600/10' },
@@ -21,24 +22,17 @@ const getCategoryConfig = (category) => {
 };
 
 export default function Marketplace() {
+  const { cart, addToCart: addToCartContext, removeFromCart: removeFromCartContext, getCartTotal, getCartItemCount } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cart, setCart] = useState(() => {
-    const saved = localStorage.getItem('webgenix_cart');
-    return saved ? JSON.parse(saved) : [];
-  });
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem('webgenix_cart', JSON.stringify(cart));
-  }, [cart]);
 
   const fetchProducts = async () => {
     try {
@@ -65,25 +59,16 @@ export default function Marketplace() {
   };
 
   const addToCart = (product) => {
-    const existing = cart.find(item => item._id === product._id);
-    if (existing) {
-      setCart(cart.map(item => 
-        item._id === product._id 
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ));
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
-    }
+    addToCartContext(product);
   };
 
   const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item._id !== productId));
+    removeFromCartContext(productId);
   };
 
-  const isInCart = (productId) => cart.some(item => item._id === productId);
+  const isInCart = (productId) => cart.some(item => (item.productId || item._id) === productId);
 
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+  const cartTotal = getCartTotal();
 
   // Group products by category
   const groupedProducts = products.reduce((acc, product) => {
@@ -134,8 +119,8 @@ export default function Marketplace() {
           className="flex items-center gap-2 btn-webgenix bg-accent hover:bg-accent/90 self-start lg:self-auto"
         >
           <ShoppingCart className="w-5 h-5" />
-          <span>Cart ({cart.length})</span>
-          {cart.length > 0 && (
+          <span>Cart ({getCartItemCount()})</span>
+          {getCartItemCount() > 0 && (
             <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded-full">
               ₹{cartTotal.toFixed(2)}
             </span>
@@ -173,8 +158,8 @@ export default function Marketplace() {
           <div className="space-y-2">
             {cart.slice(0, 3).map(item => (
               <div key={item._id} className="flex items-center justify-between text-sm">
-                <span className="text-white/70">{item.name} x{item.quantity}</span>
-                <span className="text-white">₹{((item.pricing?.[0]?.price || 0) * item.quantity).toFixed(2)}</span>
+                <span className="text-white/70">{item.name} {item.quantity > 1 ? `x${item.quantity}` : ''}</span>
+                <span className="text-white">₹{(item.price * (item.quantity || 1)).toFixed(2)}</span>
               </div>
             ))}
             {cart.length > 3 && (

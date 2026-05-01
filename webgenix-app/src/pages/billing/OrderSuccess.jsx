@@ -24,9 +24,11 @@ export default function OrderSuccess() {
   const total = searchParams.get('total');
   const status = searchParams.get('status');
   const method = searchParams.get('method');
+  const verified = searchParams.get('verified');
   
   const isPaymentSuccess = status === 'success';
   const isOffline = method === 'offline';
+  const isVerified = verified !== 'false';
 
   useEffect(() => {
     if (!orderId) {
@@ -153,10 +155,14 @@ export default function OrderSuccess() {
 
         {/* Razorpay Success Message */}
         {isPaymentSuccess && (
-          <div className="bg-success/10 border border-success/30 rounded-2xl p-6 mb-6">
-            <h3 className="text-lg font-bold text-success mb-2">Payment Confirmed!</h3>
+          <div className={`rounded-2xl p-6 mb-6 ${isVerified ? 'bg-success/10 border border-success/30' : 'bg-yellow-500/10 border border-yellow-500/30'}`}>
+            <h3 className={`text-lg font-bold mb-2 ${isVerified ? 'text-success' : 'text-yellow-400'}`}>
+              {isVerified ? 'Payment Confirmed!' : 'Payment Received - Verification Pending'}
+            </h3>
             <p className="text-text-secondary">
-              Your payment has been successfully processed via Razorpay. Your services are now being provisioned and will be available shortly.
+              {isVerified 
+                ? 'Your payment has been successfully processed via Razorpay. Your services are now being provisioned and will be available shortly.'
+                : 'Your payment was received but we encountered an issue during verification. Our team will manually verify your payment and activate your services within 24 hours. No further action needed from you.'}
             </p>
           </div>
         )}
@@ -272,7 +278,7 @@ export default function OrderSuccess() {
           </Link>
           
           <Link
-            to="/my-services"
+            to="/my-services?refresh=true"
             className="flex items-center justify-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-xl font-semibold transition-colors"
           >
             Go to My Services

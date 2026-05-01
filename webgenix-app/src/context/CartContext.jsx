@@ -14,21 +14,38 @@ export function CartProvider({ children }) {
 
   const addToCart = (product, cycle = 'monthly') => {
     const pricing = product.pricing?.find(p => p.cycle === cycle) || product.pricing?.[0];
-    const existing = cart.find(item => item.productId === product._id && item.cycle === cycle);
-    if (existing) return;
+    const productId = product._id || product.productId;
     
-    setCart([...cart, {
-      productId: product._id,
-      name: product.name,
-      description: product.description,
-      cycle: cycle || pricing?.cycle || 'monthly',
-      price: pricing?.price || 0,
-      setupFee: pricing?.setupFee || 0
-    }]);
+    setCart(prevCart => {
+      const existing = prevCart.find(item => item.productId === productId && item.cycle === cycle);
+      if (existing) {
+        return prevCart.map(item => 
+          item.productId === productId && item.cycle === cycle
+            ? { ...item, quantity: (item.quantity || 1) + 1 }
+            : item
+        );
+      }
+      
+      return [...prevCart, {
+        productId: productId,
+        name: product.name,
+        description: product.description,
+        cycle: cycle || pricing?.cycle || 'monthly',
+        price: pricing?.price || 0,
+        setupFee: pricing?.setupFee || 0,
+        quantity: 1
+      }];
+    });
   };
 
   const removeFromCart = (productId, cycle) => {
-    setCart(cart.filter(item => !(item.productId === productId && item.cycle === cycle)));
+    setCart(prevCart => prevCart.filter(item => {
+      const id = item.productId || item._id;
+      if (cycle) {
+        return !(id === productId && item.cycle === cycle);
+      }
+      return id !== productId;
+    }));
   };
 
   const clearCart = () => {
@@ -36,7 +53,7 @@ export function CartProvider({ children }) {
   };
 
   const getCartTotal = () => {
-    return cart.reduce((sum, item) => sum + item.price + (item.setupFee || 0), 0);
+    return cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)) + (item.setupFee || 0), 0);
   };
 
   const getCartItemCount = () => cart.length;
