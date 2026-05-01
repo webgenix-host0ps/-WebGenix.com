@@ -30,6 +30,8 @@ export function CartProvider({ children }) {
         productId: productId,
         name: product.name,
         description: product.description,
+        productType: product.type || product.productType || 'hosting',
+        type: product.type || product.productType || 'hosting',
         cycle: cycle || pricing?.cycle || 'monthly',
         price: pricing?.price || 0,
         setupFee: pricing?.setupFee || 0,

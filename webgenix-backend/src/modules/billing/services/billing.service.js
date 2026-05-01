@@ -242,12 +242,25 @@ export const markInvoiceAsPaid = async (invoiceId, paymentData, req) => {
     // Operations are sequential. If a step fails, the error is logged and re-thrown.
     
     console.log('[BillingService] Finding invoice:', invoiceId);
-    const invoice = await Invoice.findById(invoiceId);
+    let invoice;
+    try {
+        invoice = await Invoice.findById(invoiceId);
+    } catch (err) {
+        console.error('[BillingService] Invalid invoice ID format:', invoiceId);
+        throw new ApiError(400, 'Invalid invoice ID format');
+    }
+    
     if (!invoice) {
+        console.error('[BillingService] Invoice NOT FOUND in DB:', invoiceId);
         throw new ApiError(404, 'Invoice not found');
     }
     
-    console.log('[BillingService] Invoice found, current status:', invoice.status);
+    console.log('[BillingService] Invoice found:', { 
+        id: invoice._id, 
+        userId: invoice.userId,
+        status: invoice.status,
+        total: invoice.total 
+    });
     
     if (invoice.status === INVOICE_STATUS.PAID) {
         console.log('[BillingService] Invoice already paid');
@@ -277,10 +290,17 @@ export const markInvoiceAsPaid = async (invoiceId, paymentData, req) => {
     
     // Update order status if exists
     if (invoice.orderId) {
-        await Order.findByIdAndUpdate(invoice.orderId, {
+        console.log('[BillingService] Updating linked order:', invoice.orderId);
+        const order = await Order.findByIdAndUpdate(invoice.orderId, {
             status: ORDER_STATUS.COMPLETED,
             paymentStatus: 'paid',
-        });
+        }, { new: true });
+        
+        if (order) {
+            console.log('[BillingService] Order updated to COMPLETED:', order._id);
+        } else {
+            console.warn('[BillingService] Linked order NOT FOUND during update:', invoice.orderId);
+        }
         
         // Create services from order items
         try {
@@ -303,8 +323,12 @@ export const markInvoiceAsPaid = async (invoiceId, paymentData, req) => {
 };
 
 export const createServicesFromOrder = async (orderId) => {
+    console.log('[BillingService] Provisioning services for order:', orderId);
     const order = await Order.findById(orderId);
-    if (!order) return;
+    if (!order) {
+        console.error('[BillingService] Order NOT FOUND for service provisioning:', orderId);
+        return;
+    }
     
     const services = [];
     

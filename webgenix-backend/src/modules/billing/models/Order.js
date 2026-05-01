@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import Counter from '../../../models/Counter.js'; // Ensure Counter is registered
 
 const { Schema } = mongoose;
 

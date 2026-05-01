@@ -264,14 +264,29 @@ export const validatePromoCode = asyncHandler(async (req, res) => {
 });
 
 export const getUserServices = asyncHandler(async (req, res) => {
-    const services = await Service.find({ userId: req.userId })
-        .populate('productId')
-        .sort({ createdAt: -1 });
+    const userId = req.userId;
+    
+    if (!userId) {
+        throw new ApiError(401, 'User not authenticated');
+    }
 
-    res.json({
-        success: true,
-        data: { services },
-    });
+    console.log('[BillingController] Fetching services for user:', userId);
+    
+    try {
+        const services = await Service.find({ userId })
+            .populate('productId')
+            .sort({ createdAt: -1 });
+
+        console.log(`[BillingController] Found ${services.length} services for user:`, userId);
+
+        res.json({
+            success: true,
+            data: { services },
+        });
+    } catch (error) {
+        console.error('[BillingController] Error fetching services:', error);
+        throw new ApiError(500, `Failed to fetch services: ${error.message}`);
+    }
 });
 
 // ============ ADMIN CONTROLLERS ============

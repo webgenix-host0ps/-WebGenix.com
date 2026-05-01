@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { INVOICE_STATUS, INVOICE_TYPE } from '../../../constants/billing.js';
+import Counter from '../../../models/Counter.js';
 
 const { Schema } = mongoose;
 

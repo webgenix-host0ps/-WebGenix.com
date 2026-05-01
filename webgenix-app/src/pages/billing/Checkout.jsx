@@ -122,11 +122,15 @@ export default function Checkout() {
 
     try {
       const orderItems = cart.map(item => ({
-        productId: item._id || item.productId,
-        cycle: item.pricing?.[0]?.cycle || item.cycle || 'monthly',
+        productId: item.productId || item._id,
+        productType: item.productType || item.type || 'hosting', // Ensure productType is sent
+        cycle: item.cycle || 'monthly',
         quantity: item.quantity || 1,
-        configuration: {}
+        configuration: item.configuration || {},
+        addons: item.addons || []
       }));
+
+      console.log('[Checkout] Creating order with items:', orderItems);
 
       const response = await billingService.createOrder({
         items: orderItems,
