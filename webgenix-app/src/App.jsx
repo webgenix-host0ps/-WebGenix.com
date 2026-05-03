@@ -32,14 +32,16 @@ import BillingTicketList from './pages/billing/BillingTicketList.jsx';
 import LeadDashboard from './pages/leads/LeadDashboard.jsx';
 import LeadManagement from './pages/leads/LeadManagement.jsx';
 
-import Store from './pages/billing/Store.jsx';
 import Checkout from './pages/billing/Checkout.jsx';
 import OrdersList from './pages/billing/OrdersList.jsx';
 import InvoicesList from './pages/billing/InvoicesList.jsx';
+import InvoiceDetail from './pages/billing/InvoiceDetail.jsx';
 import ServicesList from './pages/billing/ServicesList.jsx';
 import MyServices from './pages/services/MyServices.jsx';
+import ServiceDetail from './pages/services/ServiceDetail.jsx';
 import Settings from './pages/Settings.jsx';
 import OrderSuccess from './pages/billing/OrderSuccess.jsx';
+import MarketplacePage from './pages/MarketplacePage.jsx';
 
 // Layout wrapper to conditionally show Navbar/Footer
 function Layout({ children }) {
@@ -48,7 +50,7 @@ function Layout({ children }) {
     location.pathname.startsWith(path)
   );
   const isDashboardRoute = [
-    '/dashboard', '/admin', '/support', '/billing', '/leads', '/store', '/checkout', '/orders', '/invoices', '/services', '/settings', '/order-success'
+    '/dashboard', '/admin', '/support', '/billing', '/leads', '/store', '/marketplace', '/checkout', '/orders', '/invoices', '/services', '/settings', '/order-success'
   ].some(path => location.pathname.startsWith(path));
 
   return (
@@ -76,14 +78,17 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
 
-            {/* Public Store routes */}
-            <Route path="/store" element={<Store />} />
+            {/* Public Marketplace routes */}
+            <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/store" element={<MarketplacePage />} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
 
             {/* Client Billing routes */}
             <Route path="/orders" element={<ProtectedRoute><OrdersList /></ProtectedRoute>} />
             <Route path="/invoices" element={<ProtectedRoute><InvoicesList /></ProtectedRoute>} />
+            <Route path="/invoices/:id" element={<ProtectedRoute><InvoiceDetail /></ProtectedRoute>} />
             <Route path="/services" element={<ProtectedRoute><MyServices /></ProtectedRoute>} />
+            <Route path="/services/:id" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
             <Route path="/my-services" element={<ProtectedRoute><MyServices /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
@@ -101,7 +106,7 @@ export default function App() {
               path="/dashboard/marketplace"
               element={
                 <ProtectedRoute>
-                  <ClientDashboard />
+                  <MarketplacePage />
                 </ProtectedRoute>
               }
             />

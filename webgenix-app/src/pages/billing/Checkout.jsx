@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { billingService } from '../../services/billing.service';
 import { authService } from '../../services/auth.service';
-import { CreditCard, Lock, Check, ArrowLeft, Shield, Loader2, ShoppingCart } from 'lucide-react';
+import { CreditCard, Lock, Check, Shield, Loader2, ShoppingCart, ChevronRight, Activity, Wallet, Building2, MapPin } from 'lucide-react';
 import { useCart } from '../../context/CartContext.jsx';
+import DashboardLayout from '../../components/dashboard/DashboardLayout';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export default function Checkout() {
   const [promoError, setPromoError] = useState('');
   const [error, setError] = useState('');
   
-  const [paymentMethod, setPaymentMethod] = useState('razorpay'); // Default to Razorpay
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -27,7 +28,6 @@ export default function Checkout() {
     pincode: ''
   });
 
-  // Load user data on mount
   useEffect(() => {
     const loadUserData = async () => {
       try {
@@ -47,7 +47,6 @@ export default function Checkout() {
         }
       } catch (err) {
         console.error('Failed to load user data:', err);
-        // Fallback to stored user
         const storedUser = authService.getStoredUser();
         if (storedUser) {
           setFormData({
@@ -62,7 +61,6 @@ export default function Checkout() {
     loadUserData();
   }, []);
 
-  // Load Razorpay script
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       if (window.Razorpay) {
@@ -108,12 +106,12 @@ export default function Checkout() {
 
   const handleCheckout = async () => {
     if (!formData.name || !formData.email) {
-      setError('Please fill in all required fields');
+      setError('Required fields: Identity & Signal Routing [Name/Email]');
       return;
     }
 
     if (cart.length === 0) {
-      setError('Your cart is empty');
+      setError('Deployment queue is empty.');
       return;
     }
 
@@ -123,14 +121,12 @@ export default function Checkout() {
     try {
       const orderItems = cart.map(item => ({
         productId: item.productId || item._id,
-        productType: item.productType || item.type || 'hosting', // Ensure productType is sent
+        productType: item.productType || item.type || 'hosting',
         cycle: item.cycle || 'monthly',
         quantity: item.quantity || 1,
         configuration: item.configuration || {},
         addons: item.addons || []
       }));
-
-      console.log('[Checkout] Creating order with items:', orderItems);
 
       const response = await billingService.createOrder({
         items: orderItems,
@@ -139,18 +135,13 @@ export default function Checkout() {
       });
 
       const { invoice, order } = response.data;
-
-      // Clear cart after successful order
       clearCart();
 
       if (paymentMethod === 'razorpay') {
-        // Load Razorpay script if not already loaded
-        if (!window.Razorpay) {
-          await loadRazorpayScript();
-        }
+        if (!window.Razorpay) await loadRazorpayScript();
         
         if (!window.Razorpay) {
-          setError('Failed to load Razorpay. Please try Bank Transfer.');
+          setError('Failed to initialize Payment Kernel. Use Bank Transfer.');
           return;
         }
         
@@ -162,27 +153,19 @@ export default function Checkout() {
             amount: razorpayOrder.data.amount,
             currency: razorpayOrder.data.currency || 'INR',
             name: 'WebGenix',
-            description: `Order #${order.orderNumber}`,
+            description: `Provisioning ID #${order.orderNumber}`,
             order_id: razorpayOrder.data.orderId,
             handler: async (paymentResult) => {
               try {
-                console.log('Payment success, verifying...', paymentResult);
-                const verifyResponse = await billingService.verifyRazorpayPayment({
+                await billingService.verifyRazorpayPayment({
                   razorpayOrderId: razorpayOrder.data.orderId,
                   razorpayPaymentId: paymentResult.razorpay_payment_id,
                   razorpaySignature: paymentResult.razorpay_signature
                 });
-                console.log('Verification response:', verifyResponse);
-                
-                // Clear cart after successful payment
                 clearCart();
-                setError(''); // Clear any errors
                 navigate('/order-success?status=success&orderId=' + order._id);
               } catch (err) {
-                console.error('Payment verification failed:', err);
-                const errorMsg = err.response?.data?.message || 'Payment verification failed. Please contact support with your Order ID.';
-                setError(errorMsg);
-                // Still navigate to success since payment was made, backend will reconcile
+                console.error('Verification failed:', err);
                 navigate('/order-success?status=success&orderId=' + order._id + '&verified=false');
               }
             },
@@ -191,40 +174,23 @@ export default function Checkout() {
               email: formData.email,
               contact: formData.phone
             },
-            theme: {
-              color: '#3b82f6'
-            },
+            theme: { color: '#3b82f6' },
             modal: {
-              ondismiss: function() {
-                console.log('Razorpay modal closed');
-                setOrderProcessing(false);
-              }
+              ondismiss: () => setOrderProcessing(false)
             }
           };
 
           const rzp = new window.Razorpay(options);
-          
-          rzp.on('payment.failed', function (response) {
-            console.error('Payment failed:', response.error);
-            setError(`Payment failed: ${response.error.description}`);
-            setOrderProcessing(false);
-          });
-          
           rzp.open();
         } catch (err) {
-          console.error('Razorpay error:', err);
-          setError(err.response?.data?.message || 'Failed to initiate payment. Please try again.');
+          setError(err.response?.data?.message || 'Signal Error. Please try again.');
           setOrderProcessing(false);
         }
       } else {
-        // Bank Transfer - go to instructions page
         navigate(`/order-success?orderId=${order._id}&invoiceId=${invoice._id}&total=${finalTotal.toFixed(2)}&method=offline`);
       }
     } catch (err) {
-      console.error('Checkout error:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to create order. Please try again.';
-      setError(errorMessage);
-      alert('Oops! Something went wrong.\n' + errorMessage);
+      setError(err.response?.data?.message || 'Order creation failed.');
     } finally {
       setOrderProcessing(false);
     }
@@ -235,267 +201,263 @@ export default function Checkout() {
   const finalTotal = cartTotal - discount;
 
   return (
-    <div className="min-h-screen bg-dark-900 text-text-primary py-12">
-      <div className="max-w-6xl mx-auto px-6">
-        <Link to="/store" className="inline-flex items-center gap-2 text-text-secondary hover:text-white mb-8 transition-colors">
-          <ArrowLeft size={20} /> Back to Store
-        </Link>
+    <DashboardLayout>
+      <div className="space-y-[32px] animate-in fade-in duration-700">
+        
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-text-muted mb-4 opacity-60">
+              <Link to="/marketplace" className="hover:text-white transition-colors uppercase tracking-widest">Marketplace</Link>
+              <ChevronRight size={12} />
+              <span className="text-accent">Checkout</span>
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tighter mb-4">
+                Secure <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40 font-black">Checkout</span>
+            </h1>
+            <p className="text-text-secondary text-sm md:text-base max-w-2xl leading-relaxed font-medium uppercase tracking-widest opacity-60">
+              Review your selected services and complete your payment to get started.
+            </p>
+          </div>
+        </div>
 
-        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Contact Information */}
-            <div className="bg-dark-800 rounded-2xl border border-dark-700 p-6">
-              <h2 className="text-xl font-bold mb-6">Contact Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-text-secondary mb-2">Full Name *</label>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Main Configuration (8 cols) */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* Identity Node */}
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-[40px] p-8 lg:p-12">
+              <div className="flex items-center gap-4 mb-10">
+                  <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
+                      <Activity size={24} />
+                  </div>
+                  <h2 className="text-xl font-black text-white tracking-tight uppercase">Your Information</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">Full Name</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-xl focus:border-accent focus:outline-none transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-accent transition-all"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm text-text-secondary mb-2">Phone Number</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-xl focus:border-accent focus:outline-none transition-colors"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm text-text-secondary mb-2">Email Address *</label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">Email Address</label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-xl focus:border-accent focus:outline-none transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-accent transition-all"
                     required
                   />
                 </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm text-text-secondary mb-2">Company Name</label>
-                  <input
-                    type="text"
-                    value={formData.company}
-                    onChange={(e) => setFormData({...formData, company: e.target.value})}
-                    className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-xl focus:border-accent focus:outline-none transition-colors"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm text-text-secondary mb-2">Billing Address</label>
-                  <input
-                    type="text"
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    placeholder="Street address"
-                    className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-xl focus:border-accent focus:outline-none transition-colors mb-3"
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) => setFormData({...formData, city: e.target.value})}
-                      placeholder="City"
-                      className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-xl focus:border-accent focus:outline-none transition-colors"
-                    />
-                    <input
-                      type="text"
-                      value={formData.state}
-                      onChange={(e) => setFormData({...formData, state: e.target.value})}
-                      placeholder="State"
-                      className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-xl focus:border-accent focus:outline-none transition-colors"
-                    />
-                    <input
-                      type="text"
-                      value={formData.pincode}
-                      onChange={(e) => setFormData({...formData, pincode: e.target.value})}
-                      placeholder="Pincode"
-                      className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-xl focus:border-accent focus:outline-none transition-colors"
-                    />
-                  </div>
+                <div className="md:col-span-2 space-y-2">
+                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">Company Name (Optional)</label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={formData.company}
+                            onChange={(e) => setFormData({...formData, company: e.target.value})}
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-accent transition-all"
+                        />
+                        <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
+                    </div>
                 </div>
               </div>
             </div>
 
-            {/* Payment Method */}
-            <div className="bg-dark-800 rounded-2xl border border-dark-700 p-6">
-              <h2 className="text-xl font-bold mb-6">Payment Method</h2>
+            {/* Allocation Node */}
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-[40px] p-8 lg:p-12">
+                <div className="flex items-center gap-4 mb-10">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                        <MapPin size={24} />
+                    </div>
+                    <h2 className="text-xl font-black text-white tracking-tight uppercase">Billing Address</h2>
+                </div>
+                
+                <div className="space-y-8">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">Full Address</label>
+                        <input
+                            type="text"
+                            value={formData.address}
+                            onChange={(e) => setFormData({...formData, address: e.target.value})}
+                            placeholder="Street address, apartment, etc."
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-accent transition-all placeholder:opacity-20"
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <input
+                        type="text"
+                        value={formData.city}
+                        onChange={(e) => setFormData({...formData, city: e.target.value})}
+                        placeholder="City"
+                        className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-accent transition-all placeholder:opacity-20"
+                        />
+                        <input
+                        type="text"
+                        value={formData.state}
+                        onChange={(e) => setFormData({...formData, state: e.target.value})}
+                        placeholder="State"
+                        className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-accent transition-all placeholder:opacity-20"
+                        />
+                        <input
+                        type="text"
+                        value={formData.pincode}
+                        onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+                        placeholder="Pin Code"
+                        className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-accent transition-all placeholder:opacity-20"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Clearance Logic */}
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-[40px] p-8 lg:p-12">
+              <div className="flex items-center gap-4 mb-10">
+                    <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-400">
+                        <Wallet size={24} />
+                    </div>
+                    <h2 className="text-xl font-black text-white tracking-tight uppercase">Payment Method</h2>
+              </div>
               
-              <div className="space-y-3">
-                <label className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button 
+                  onClick={() => setPaymentMethod('razorpay')}
+                  className={`flex flex-col items-start p-8 rounded-[32px] border transition-all relative overflow-hidden group ${
                   paymentMethod === 'razorpay' 
                     ? 'border-accent bg-accent/10' 
-                    : 'border-dark-600 hover:border-dark-500'
+                    : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]'
                 }`}>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="razorpay"
-                      checked={paymentMethod === 'razorpay'}
-                      onChange={() => setPaymentMethod('razorpay')}
-                      className="w-5 h-5 accent-accent"
-                    />
-                    <div>
-                      <span className="font-medium">Razorpay</span>
-                      <p className="text-sm text-text-secondary">Pay securely with UPI, Cards, Net Banking</p>
-                    </div>
-                  </div>
-                  <CreditCard className="w-6 h-6 text-text-secondary" />
-                </label>
+                  <CreditCard className={`mb-4 transition-colors ${paymentMethod === 'razorpay' ? 'text-accent' : 'text-text-muted'}`} />
+                  <span className="text-sm font-black text-white uppercase tracking-widest mb-1">Online Payment</span>
+                  <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">UPI / Cards / Net Banking</p>
+                  {paymentMethod === 'razorpay' && <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-accent animate-pulse"></div>}
+                </button>
 
-                <label className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
+                <button 
+                  onClick={() => setPaymentMethod('offline')}
+                  className={`flex flex-col items-start p-8 rounded-[32px] border transition-all relative overflow-hidden group ${
                   paymentMethod === 'offline' 
                     ? 'border-accent bg-accent/10' 
-                    : 'border-dark-600 hover:border-dark-500'
+                    : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]'
                 }`}>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="offline"
-                      checked={paymentMethod === 'offline'}
-                      onChange={() => setPaymentMethod('offline')}
-                      className="w-5 h-5 accent-accent"
-                    />
-                    <div>
-                      <span className="font-medium">Bank Transfer</span>
-                      <p className="text-sm text-text-secondary">Pay via NEFT/RTGS/IMPS</p>
-                    </div>
-                  </div>
-                </label>
+                  <Building2 className={`mb-4 transition-colors ${paymentMethod === 'offline' ? 'text-accent' : 'text-text-muted'}`} />
+                  <span className="text-sm font-black text-white uppercase tracking-widest mb-1">Bank Transfer</span>
+                  <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">NEFT / IMPS / RTGS</p>
+                  {paymentMethod === 'offline' && <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-accent animate-pulse"></div>}
+                </button>
               </div>
 
-              <div className="mt-6 flex items-center gap-2 text-sm text-text-secondary">
-                <Lock className="w-4 h-4" />
-                <span>Your payment information is encrypted and secure</span>
+              <div className="mt-10 flex items-center gap-3 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] opacity-60">
+                <Lock size={14} className="text-accent" />
+                <span>Secure SSL Encrypted Payment</span>
               </div>
             </div>
 
             {error && (
-              <div className="bg-error/10 border border-error/30 text-error px-4 py-3 rounded-xl">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-3xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
+                <Shield size={18} />
                 {error}
               </div>
             )}
           </div>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-dark-800 rounded-2xl border border-dark-700 p-6 sticky top-6">
-              <h2 className="text-xl font-bold mb-6">Order Summary</h2>
+          {/* Checkout Logic (4 cols) */}
+          <div className="lg:col-span-4 lg:sticky lg:top-[120px]">
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-[48px] p-8 lg:p-10 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
+                
+                <h2 className="text-xl font-black text-white tracking-tight uppercase mb-10 flex items-center gap-3">
+                    <ShoppingCart size={20} className="text-accent" />
+                    Order Summary
+                </h2>
               
-              {/* Cart Items */}
-              <div className="space-y-4 mb-6">
-                {cart.length === 0 ? (
-                  <div className="text-center py-4 text-text-secondary">
-                    <p>Your cart is empty</p>
-                    <Link to="/dashboard/marketplace" className="text-accent text-sm hover:underline mt-2 inline-block">
-                      Browse Marketplace
-                    </Link>
-                  </div>
-                ) : (
-                  cart.map((item, i) => {
-                    const price = item.pricing?.[0]?.price || item.price || 0;
-                    const setupFee = item.pricing?.[0]?.setupFee || item.setupFee || 0;
-                    const cycle = item.pricing?.[0]?.cycle || item.cycle || 'monthly';
-                    const quantity = item.quantity || 1;
-                    return (
-                      <div key={i} className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-text-secondary">{cycle} x{quantity}</p>
+                <div className="space-y-6 mb-10">
+                    {cart.map((item, i) => (
+                        <div key={i} className="flex justify-between items-start group">
+                            <div>
+                                <p className="text-xs font-black text-white uppercase tracking-widest mb-1 group-hover:text-accent transition-colors">{item.name}</p>
+                                <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em]">{item.cycle || 'Monthly'} Plan</p>
+                            </div>
+                            <span className="text-sm font-black text-white tracking-tighter">₹{(item.pricing?.[0]?.price || item.price || 0).toFixed(0)}</span>
                         </div>
-                        <div className="text-right">
-                          <p>₹{(price * quantity).toFixed(2)}</p>
-                          {setupFee > 0 && (
-                            <p className="text-xs text-text-muted">+₹{setupFee} setup</p>
-                          )}
+                    ))}
+                    {cart.length === 0 && (
+                         <div className="text-center py-10 opacity-40">
+                             <p className="text-[10px] font-black uppercase tracking-widest">Cart is empty</p>
+                         </div>
+                    )}
+                </div>
+
+                {/* Promo Node */}
+                <div className="mb-10 p-2 bg-black/20 rounded-3xl border border-white/5">
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={promoCode}
+                            onChange={(e) => setPromoCode(e.target.toUpperCase())}
+                            placeholder="PROMO CODE..."
+                            className="flex-1 bg-transparent px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white focus:outline-none placeholder:opacity-20"
+                            disabled={promoApplied}
+                        />
+                        <button
+                            onClick={applyPromoCode}
+                            disabled={promoApplied}
+                            className="px-6 py-2 bg-white/10 hover:bg-accent text-white rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-30"
+                        >
+                            {promoApplied ? 'Applied' : 'Apply'}
+                        </button>
+                    </div>
+                    {promoError && <p className="text-red-400 text-[8px] font-black uppercase tracking-widest mt-2 px-3">{promoError}</p>}
+                </div>
+
+                {/* Calculations */}
+                <div className="space-y-4 pt-8 border-t border-white/5 mb-8">
+                    <div className="flex justify-between text-[10px] font-black text-text-muted uppercase tracking-widest">
+                        <span>Subtotal</span>
+                        <span>₹{cartTotal.toFixed(2)}</span>
+                    </div>
+                    {discount > 0 && (
+                        <div className="flex justify-between text-[10px] font-black text-green-400 uppercase tracking-widest">
+                            <span>Discount Applied</span>
+                            <span>-₹{discount}</span>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* Promo Code */}
-              <div className="mb-6">
-                <label className="block text-sm text-text-secondary mb-2">Promo Code</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                    placeholder="Enter code"
-                    className="flex-1 px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg focus:border-accent focus:outline-none"
-                    disabled={promoApplied}
-                  />
-                  <button
-                    onClick={applyPromoCode}
-                    disabled={promoApplied}
-                    className="px-4 py-2 bg-dark-600 hover:bg-dark-500 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    Apply
-                  </button>
+                    )}
+                    <div className="flex justify-between items-end pt-4">
+                        <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Total Amount</span>
+                        <span className="text-4xl font-black text-accent tracking-tighter leading-none">₹{finalTotal.toFixed(0)}</span>
+                    </div>
                 </div>
-                {promoError && <p className="text-error text-sm mt-2">{promoError}</p>}
-                {promoApplied && (
-                  <p className="text-success text-sm mt-2 flex items-center gap-1">
-                    <Check size={14} /> {promoApplied.value}{promoApplied.type === 'percentage' ? '%' : '₹'} off applied!
-                  </p>
-                )}
-              </div>
 
-              {/* Totals */}
-              <div className="border-t border-dark-700 pt-4 space-y-2">
-                <div className="flex justify-between text-text-secondary">
-                  <span>Subtotal</span>
-                  <span>₹{cartTotal.toFixed(2)}</span>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-success">
-                    <span>Discount</span>
-                    <span>-₹{discount}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-lg font-bold pt-2 border-t border-dark-700">
-                  <span>Total</span>
-                  <span>₹{finalTotal.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleCheckout}
-                disabled={orderProcessing || cart.length === 0 || finalTotal <= 0}
-                className="w-full mt-6 py-4 bg-accent hover:bg-accent-hover disabled:bg-dark-600 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-              >
-                {orderProcessing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : cart.length === 0 ? (
-                  <>
-                    <ShoppingCart className="w-5 h-5" />
-                    Cart Empty
-                  </>
-                ) : (
-                  <>
-                    <Shield className="w-5 h-5" />
-                    Pay ₹{finalTotal.toFixed(2)}
-                  </>
-                )}
-              </button>
+                <button
+                    onClick={handleCheckout}
+                    disabled={orderProcessing || cart.length === 0 || finalTotal <= 0}
+                    className="w-full py-5 bg-accent hover:bg-accent-hover text-white rounded-[24px] text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-accent/20 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                >
+                    {orderProcessing ? (
+                        <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Processing...
+                        </>
+                    ) : (
+                        <>
+                            <Shield size={18} />
+                            Complete Purchase
+                        </>
+                    )}
+                </button>
             </div>
           </div>
         </div>
+
+        <div className="h-20" />
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

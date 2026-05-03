@@ -6,12 +6,12 @@ import { Clock, MessageSquare, ArrowRight, Folder } from 'lucide-react';
 export default function TicketCard({ ticket, onClick }) {
     return (
         <div 
-            className="group relative flex flex-col bg-[rgba(17,20,28,0.88)] backdrop-blur-xl border border-[rgba(255,255,255,0.06)] rounded-2xl p-[22px] transition-all duration-300 hover:shadow-2xl hover:shadow-accent/10 hover:-translate-y-1 hover:border-accent/30 cursor-pointer overflow-hidden"
+            className="group relative flex flex-col bg-dark-800/80 backdrop-blur-xl border border-header-border rounded-2xl p-[22px] transition-all duration-300 hover:shadow-2xl hover:shadow-accent/10 hover:-translate-y-1 hover:border-accent/30 cursor-pointer overflow-hidden"
             onClick={onClick}
         >
             {/* Top Row */}
             <div className="flex justify-between items-start mb-4">
-                <span className="text-text-muted text-xs font-mono font-medium px-2 py-1 bg-dark-800 rounded-md border border-dark-700">
+                <span className="text-text-primary text-xs font-mono font-bold px-2.5 py-1 bg-dark-900/50 rounded-md border border-header-border shadow-sm">
                     {ticket.ticketId || ticket._id?.substring(0,8).toUpperCase()}
                 </span>
                 <TicketStatusBadge status={ticket.status} />
@@ -42,8 +42,8 @@ export default function TicketCard({ ticket, onClick }) {
             </div>
 
             {/* Footer Actions */}
-            <div className="pt-4 border-t border-[rgba(255,255,255,0.04)] flex items-center justify-between">
-                <button className="flex items-center gap-2 text-sm font-medium text-text-secondary group-hover:text-white transition-colors">
+            <div className="pt-4 border-t border-header-border flex items-center justify-between">
+                <button className="flex items-center gap-2 text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">
                     <MessageSquare size={16} />
                     <span>Reply Ticket</span>
                 </button>

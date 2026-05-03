@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { createTicket } from '../services/ticket.service';
+import { ChevronRight, Send, AlertTriangle, Shield, Clock, Activity } from 'lucide-react';
+import DashboardLayout from '../components/dashboard/DashboardLayout';
 
 export default function CreateTicket() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     
-    // In a real app, fetch departments from API. Hardcoded for now.
     const departments = [
         { _id: '662b1f1a1c4b2a1f1a1c4b2a', name: 'General Support' },
         { _id: '662b1f1a1c4b2a1f1a1c4b2b', name: 'Billing' },
@@ -17,7 +18,7 @@ export default function CreateTicket() {
     const [formData, setFormData] = useState({
         subject: '',
         description: '',
-        departmentId: departments[0]._id, // default to first
+        departmentId: departments[0]._id,
         priority: 'MEDIUM'
     });
 
@@ -32,7 +33,7 @@ export default function CreateTicket() {
         e.preventDefault();
         
         if (!formData.subject.trim() || !formData.description.trim()) {
-            setError('Subject and description are required.');
+            setError('Subject and description are required components for transmission.');
             return;
         }
 
@@ -48,105 +49,172 @@ export default function CreateTicket() {
             }
         } catch (err) {
             console.error('Failed to create ticket:', err);
-            setError(err.response?.data?.message || 'Failed to create ticket. Please try again.');
+            setError(err.response?.data?.message || 'Failed to inject signal. Re-synchronize and try again.');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="container-webgenix py-8 max-w-3xl">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-text-primary mb-2">Create New Ticket</h1>
-                <p className="text-text-secondary">Please provide details about your issue so we can help you better.</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="card-webgenix p-6 sm:p-8 space-y-6">
-                {error && (
-                    <div className="bg-error/10 border border-error/20 text-error p-4 rounded-xl text-sm">
-                        {error}
+        <DashboardLayout>
+            <div className="max-w-4xl space-y-8 animate-in fade-in duration-700">
+                
+                {/* Header Section */}
+                <div>
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-text-muted mb-4 opacity-60">
+                        <Link to="/tickets" className="hover:text-white transition-colors">Support Hub</Link>
+                        <ChevronRight size={12} />
+                        <span className="text-accent">Signal Injection</span>
                     </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-text-primary">Department</label>
-                        <select 
-                            name="departmentId"
-                            value={formData.departmentId}
-                            onChange={handleChange}
-                            className="input-webgenix"
-                            required
-                        >
-                            {departments.map(dept => (
-                                <option key={dept._id} value={dept._id}>{dept.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-text-primary">Priority</label>
-                        <select 
-                            name="priority"
-                            value={formData.priority}
-                            onChange={handleChange}
-                            className="input-webgenix"
-                        >
-                            <option value="LOW">Low</option>
-                            <option value="MEDIUM">Medium</option>
-                            <option value="HIGH">High</option>
-                            <option value="URGENT">Urgent</option>
-                        </select>
-                    </div>
+                    <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tighter mb-4">
+                        Initialize New <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40 font-black">Case Node</span>
+                    </h1>
+                    <p className="text-text-secondary text-sm md:text-base max-w-2xl leading-relaxed font-medium uppercase tracking-widest opacity-60">
+                        Detail your technical requirements or system anomalies. Our agents will synchronize with your workspace shortly.
+                    </p>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-primary">Subject</label>
-                    <input 
-                        type="text"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleChange}
-                        className="input-webgenix"
-                        placeholder="Brief description of the issue"
-                        required
-                    />
-                </div>
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+                    
+                    {/* Form Container */}
+                    <div className="xl:col-span-8">
+                        <form onSubmit={handleSubmit} className="bg-white/[0.03] border border-white/[0.06] rounded-[40px] p-8 lg:p-12 space-y-8 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-accent/5 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
+                            
+                            {error && (
+                                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
+                                    <AlertTriangle size={18} />
+                                    {error}
+                                </div>
+                            )}
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-primary">Description</label>
-                    <textarea 
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        className="input-webgenix min-h-[200px]"
-                        placeholder="Please provide as much detail as possible..."
-                        required
-                    />
-                </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-white uppercase tracking-[0.2em] opacity-40">Frequency Department</label>
+                                    <div className="relative group/select">
+                                        <select 
+                                            name="departmentId"
+                                            value={formData.departmentId}
+                                            onChange={handleChange}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white appearance-none focus:outline-none focus:border-accent transition-all cursor-pointer"
+                                            required
+                                        >
+                                            {departments.map(dept => (
+                                                <option key={dept._id} value={dept._id} className="bg-dark-800">{dept.name}</option>
+                                            ))}
+                                        </select>
+                                        <Shield size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none group-focus-within/select:text-accent transition-colors" />
+                                    </div>
+                                </div>
 
-                <div className="flex justify-end gap-4 pt-4 border-t border-dark-700">
-                    <button 
-                        type="button" 
-                        onClick={() => navigate(-1)}
-                        className="btn-webgenix bg-dark-700 hover:bg-dark-600 text-text-primary"
-                    >
-                        Cancel
-                    </button>
-                    <button 
-                        type="submit" 
-                        className="btn-webgenix btn-primary-webgenix min-w-[140px]"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <div className="flex items-center gap-2">
-                                <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                                Submitting...
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-white uppercase tracking-[0.2em] opacity-40">Priority Protocol</label>
+                                    <div className="relative group/select">
+                                        <select 
+                                            name="priority"
+                                            value={formData.priority}
+                                            onChange={handleChange}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white appearance-none focus:outline-none focus:border-accent transition-all cursor-pointer"
+                                        >
+                                            <option value="LOW" className="bg-dark-800">Alpha [Low]</option>
+                                            <option value="MEDIUM" className="bg-dark-800">Beta [Medium]</option>
+                                            <option value="HIGH" className="bg-dark-800">Gamma [High]</option>
+                                            <option value="URGENT" className="bg-dark-800">Omega [Urgent]</option>
+                                        </select>
+                                        <Activity size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none group-focus-within/select:text-accent transition-colors" />
+                                    </div>
+                                </div>
                             </div>
-                        ) : 'Create Ticket'}
-                    </button>
+
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-white uppercase tracking-[0.2em] opacity-40">Signal Subject</label>
+                                <input 
+                                    type="text"
+                                    name="subject"
+                                    value={formData.subject}
+                                    onChange={handleChange}
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-accent transition-all placeholder:text-text-muted/20"
+                                    placeholder="Brief summary of the synchronization issue..."
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-white uppercase tracking-[0.2em] opacity-40">System Log / Description</label>
+                                <textarea 
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    className="w-full bg-white/5 border border-white/10 rounded-3xl px-6 py-6 text-xs font-medium leading-relaxed text-white min-h-[250px] focus:outline-none focus:border-accent transition-all placeholder:text-text-muted/20 resize-none"
+                                    placeholder="Provide detailed logs or steps to reproduce the anomaly..."
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row justify-end gap-4 pt-8 border-t border-white/5">
+                                <button 
+                                    type="button" 
+                                    onClick={() => navigate(-1)}
+                                    className="px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 text-[10px] font-black text-text-secondary hover:text-white uppercase tracking-widest transition-all"
+                                >
+                                    Abort Process
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    className="px-10 py-4 bg-accent hover:bg-accent-hover text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-accent/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Activity className="w-4 h-4 animate-pulse" />
+                                            Injecting Signal...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send size={16} />
+                                            Initialize Transmission
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* Meta Sidebar */}
+                    <div className="xl:col-span-4 space-y-6">
+                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-[32px] p-8">
+                            <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                                <Shield size={16} className="text-accent" />
+                                Security Protocol
+                            </h4>
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0"></div>
+                                    <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest leading-relaxed">Encrypted P2P transmission tunnels are active.</p>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0"></div>
+                                    <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest leading-relaxed">Priority status Gamma & Omega bypass standard queues.</p>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0"></div>
+                                    <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest leading-relaxed">Logs are auto-purged every 365 solar cycles.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-accent/5 border border-accent/10 rounded-[32px] p-8">
+                            <Clock size={24} className="text-accent mb-4" />
+                            <h4 className="text-white font-black text-sm uppercase tracking-widest mb-2">Sync Estimate</h4>
+                            <p className="text-accent/60 text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                                Average response time for current network load: <span className="text-white">12-18 Minutes</span>
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </form>
-        </div>
+
+                <div className="h-10" />
+            </div>
+        </DashboardLayout>
     );
 }

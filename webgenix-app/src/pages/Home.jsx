@@ -288,7 +288,7 @@ function ContactSection() {
       <div className="container-webgenix">
         <div
           className="card-glass-webgenix text-center relative overflow-hidden"
-          style={{ background: 'rgba(20,20,20,0.8)' }}
+          style={{ background: 'var(--color-dark-800)' }}
         >
           {/* Background glow */}
           <div

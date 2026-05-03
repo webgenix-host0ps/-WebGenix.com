@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
-import { User, LogOut, ShoppingCart } from 'lucide-react';
+import { User, LogOut, ShoppingCart, Sun, Moon } from 'lucide-react';
 
 const navLinks = [
-  { label: 'Services', href: '/store' },
+  { label: 'Marketplace', href: '/marketplace' },
   { label: 'About', href: '/#about' },
   { label: 'Contact', href: '/#contact' },
 ];
@@ -17,6 +17,27 @@ export default function Navbar() {
   const { getCartItemCount } = useCart();
   const navigate = useNavigate();
   const cartCount = getCartItemCount();
+  const [isLight, setIsLight] = useState(document.documentElement.classList.contains('light'));
+
+  const toggleTheme = () => {
+    const newIsLight = !isLight;
+    setIsLight(newIsLight);
+    if (newIsLight) {
+      document.documentElement.classList.add('light');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+    }
+  };
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.documentElement.classList.add('light');
+      setIsLight(true);
+    }
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -64,7 +85,15 @@ export default function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <Link to="/store" className="p-2 text-text-secondary hover:text-text-primary transition-colors" title="Cart">
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+            title={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+          >
+            {isLight ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+          
+          <Link to="/marketplace" className="p-2 text-text-secondary hover:text-text-primary transition-colors" title="Cart">
             <div className="relative">
               <ShoppingCart size={20} />
               {cartCount > 0 && (

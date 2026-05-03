@@ -10,7 +10,7 @@ export default function AuthCard({ children, title, subtitle }) {
         <div className="text-center mb-10">
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-lg shadow-accent/20 relative group"
-            style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}
+            style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))' }}
           >
             <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             W

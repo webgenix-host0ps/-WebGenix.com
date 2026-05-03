@@ -117,7 +117,7 @@ export default function OrdersList() {
           <p className="text-sm text-text-secondary">View and manage your service orders</p>
         </div>
         <Link 
-          to="/store" 
+          to="/marketplace" 
           className="btn-webgenix btn-primary-webgenix btn-md-webgenix flex items-center gap-2"
         >
           <Package size={18} /> New Order

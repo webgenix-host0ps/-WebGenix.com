@@ -21,7 +21,7 @@ export default function TicketStatusBadge({ status }) {
     };
 
     return (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusTheme(status)}`}>
+        <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border shadow-sm ${getStatusTheme(status)}`}>
             {status?.replace('_', ' ')}
         </span>
     );

@@ -17,8 +17,8 @@ export default function TicketPriorityBadge({ priority }) {
     };
 
     return (
-        <span className={`text-xs font-medium ${getPriorityTheme(priority)} uppercase tracking-wider`}>
-            {priority} Priority
+        <span className={`text-[10px] font-black ${getPriorityTheme(priority)} uppercase tracking-widest bg-dark-900/50 px-2 py-1 rounded-md border border-header-border shadow-sm`}>
+            {priority} PRIORITY
         </span>
     );
 }
