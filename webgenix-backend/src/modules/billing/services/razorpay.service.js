@@ -10,9 +10,19 @@ let razorpayInstance = null;
 
 const getRazorpayInstance = () => {
     if (razorpayInstance) return razorpayInstance;
+    
+    // Debug: Check if credentials exist
+    console.log('[Razorpay] Checking credentials...');
+    console.log('[Razorpay] KEY_ID exists:', !!env.RAZORPAY_KEY_ID);
+    console.log('[Razorpay] KEY_SECRET exists:', !!env.RAZORPAY_KEY_SECRET);
+    
     if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) {
-        throw new ApiError(500, 'Razorpay credentials not configured');
+        console.error('[Razorpay] Missing credentials! KEY_ID:', env.RAZORPAY_KEY_ID ? '***' : 'MISSING', 'SECRET:', env.RAZORPAY_KEY_SECRET ? '***' : 'MISSING');
+        throw new ApiError(500, 'Razorpay credentials not configured. Please check .env file.');
     }
+    
+    console.log('[Razorpay] Initializing with key:', env.RAZORPAY_KEY_ID.substring(0, 10) + '...');
+    
     razorpayInstance = new Razorpay({
         key_id: env.RAZORPAY_KEY_ID,
         key_secret: env.RAZORPAY_KEY_SECRET,

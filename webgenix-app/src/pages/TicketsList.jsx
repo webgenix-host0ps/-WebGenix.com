@@ -19,7 +19,7 @@ export default function TicketsList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('');
-    const [activeTab, setActiveTab] = useState('active'); // 'active' or 'closed'
+    const [activeTab, setActiveTab] = useState('all'); // 'all', 'open', 'inprogress', 'answered', 'closed'
 
     const fetchTickets = async () => {
         try {
@@ -42,20 +42,25 @@ export default function TicketsList() {
     // Calculate Global Stats
     const stats = useMemo(() => {
         let total = allTickets.length;
-        let open = allTickets.filter(t => ['OPEN', 'CLIENT_REPLY', 'IN_PROGRESS'].includes(t.status?.toUpperCase())).length;
+        let open = allTickets.filter(t => ['OPEN', 'CLIENT_REPLY'].includes(t.status?.toUpperCase())).length;
         let answered = allTickets.filter(t => t.status?.toUpperCase() === 'ANSWERED').length;
         let closed = allTickets.filter(t => ['RESOLVED', 'CLOSED'].includes(t.status?.toUpperCase())).length;
-        return { total, open, answered, closed };
+        let inProgress = allTickets.filter(t => t.status?.toUpperCase() === 'IN_PROGRESS').length;
+        return { total, open, answered, closed, inProgress };
     }, [allTickets]);
 
     // Derived filtered list for display
     const filteredTickets = useMemo(() => {
         let list = allTickets;
 
-        // Tab Filter (Active vs Closed)
-        if (activeTab === 'active') {
-            list = list.filter(t => !['RESOLVED', 'CLOSED'].includes(t.status?.toUpperCase()));
-        } else {
+        // Tab Filter
+        if (activeTab === 'open') {
+            list = list.filter(t => ['OPEN', 'CLIENT_REPLY'].includes(t.status?.toUpperCase()));
+        } else if (activeTab === 'inprogress') {
+            list = list.filter(t => t.status?.toUpperCase() === 'IN_PROGRESS');
+        } else if (activeTab === 'answered') {
+            list = list.filter(t => t.status?.toUpperCase() === 'ANSWERED');
+        } else if (activeTab === 'closed') {
             list = list.filter(t => ['RESOLVED', 'CLOSED'].includes(t.status?.toUpperCase()));
         }
 
@@ -109,19 +114,20 @@ export default function TicketsList() {
                 </div>
 
                 {/* Status Metric Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     {[
                         { label: 'Total Tickets', value: stats.total, icon: Inbox, color: 'blue' },
-                        { label: 'Open Tickets', value: stats.open, icon: Clock, color: 'amber' },
+                        { label: 'Open', value: stats.open, icon: Clock, color: 'amber' },
+                        { label: 'In Progress', value: stats.inProgress, icon: Activity, color: 'blue' },
                         { label: 'Answered', value: stats.answered, icon: MessageSquare, color: 'purple' },
                         { label: 'Resolved', value: stats.closed, icon: CheckCircle, color: 'green' },
                     ].map((item, i) => (
-                        <div key={i} className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-[28px] group hover:border-accent/30 transition-all duration-300">
-                            <div className={`w-10 h-10 rounded-xl bg-${item.color}-500/10 border border-${item.color}-500/20 flex items-center justify-center mb-4 text-${item.color}-400 group-hover:scale-110 transition-transform`}>
-                                <item.icon size={20} />
+                        <div key={i} className="bg-white/[0.03] border border-white/[0.06] p-5 rounded-[24px] group hover:border-accent/30 transition-all duration-300">
+                            <div className={`w-8 h-8 rounded-lg bg-${item.color}-500/10 border border-${item.color}-500/20 flex items-center justify-center mb-3 text-${item.color}-400 group-hover:scale-110 transition-transform`}>
+                                <item.icon size={16} />
                             </div>
-                            <h3 className="text-3xl font-black text-text-primary mb-1 tracking-tight">{item.value}</h3>
-                            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{item.label}</p>
+                            <h3 className="text-2xl font-black text-text-primary mb-0.5 tracking-tight">{item.value}</h3>
+                            <p className="text-[9px] font-black text-text-muted uppercase tracking-widest">{item.label}</p>
                         </div>
                     ))}
                 </div>
@@ -129,27 +135,30 @@ export default function TicketsList() {
                 {/* Toolbar & Filters */}
                 <div className="bg-white/[0.02] border border-white/[0.06] p-4 rounded-[28px] flex flex-col xl:flex-row items-center gap-4">
                     {/* Tabs */}
-                    <div className="flex p-1.5 bg-dark-900/40 rounded-2xl w-full xl:w-auto">
-                        <button 
-                            onClick={() => setActiveTab('active')} 
-                            className={`flex-1 xl:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'active' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-text-muted hover:text-white'}`}
-                        >
-                            Active
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('closed')} 
-                            className={`flex-1 xl:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'closed' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-text-muted hover:text-white'}`}
-                        >
-                            Past Tickets
-                        </button>
+                    <div className="flex p-1 bg-dark-900/40 rounded-2xl w-full xl:w-auto overflow-x-auto no-scrollbar">
+                        {[
+                            { id: 'all', label: 'All' },
+                            { id: 'open', label: 'Open' },
+                            { id: 'inprogress', label: 'In Progress' },
+                            { id: 'answered', label: 'Answered' },
+                            { id: 'closed', label: 'Closed' }
+                        ].map((tab) => (
+                            <button 
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)} 
+                                className={`whitespace-nowrap px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-text-muted hover:text-white'}`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
 
                     {/* Search */}
-                    <div className="relative w-full xl:w-80 group">
+                    <div className="relative w-full xl:w-64 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted group-focus-within:text-accent transition-colors" />
                         <input 
                             type="text" 
-                            placeholder="Search by ID or Subject..." 
+                            placeholder="Search tickets..." 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-white/[0.03] border border-white/[0.06] rounded-2xl pl-12 pr-4 py-3 text-sm text-white placeholder-text-muted/50 focus:outline-none focus:border-accent/30 transition-all"

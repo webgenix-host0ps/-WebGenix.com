@@ -5,8 +5,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env from the backend directory
+// Load .env from the backend root directory
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
+// Debug: Check if Razorpay credentials are loaded
+console.log('[ENV] RAZORPAY_KEY_ID loaded:', !!process.env.RAZORPAY_KEY_ID);
+console.log('[ENV] RAZORPAY_KEY_SECRET loaded:', !!process.env.RAZORPAY_KEY_SECRET);
 
 export const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
@@ -24,14 +28,14 @@ export const env = {
     // Security
     BCRYPT_ROUNDS: parseInt(process.env.BCRYPT_ROUNDS, 10) || 12,
 
-    // Email (for production, use real SMTP)
+    // Email
     SMTP_HOST: process.env.SMTP_HOST,
     SMTP_PORT: parseInt(process.env.SMTP_PORT, 10),
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASS: process.env.SMTP_PASS,
     EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@webgenix.com',
 
-    // Client URL (for CORS and email links)
+    // Client URL
     CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
 
     // Cookie options

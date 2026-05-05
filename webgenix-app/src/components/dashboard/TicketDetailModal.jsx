@@ -21,7 +21,7 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdate, o
     if (isStaff && isOpen) {
       const fetchReplies = async () => {
         try {
-          const response = await getPredefinedReplies(ticket.department?._id);
+          const response = await getPredefinedReplies(ticket?.department?._id);
           setPredefinedReplies(response.data);
         } catch (error) {
           console.error('Error fetching predefined replies', error);
@@ -29,7 +29,7 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdate, o
       };
       fetchReplies();
     }
-  }, [isOpen, isStaff, ticket.department?._id]);
+  }, [isOpen, isStaff, ticket?.department?._id]);
 
   if (!ticket) return null;
 

@@ -9,6 +9,7 @@ import {
   Target, 
   Settings,
   X,
+  Package,
   ShoppingBag,
   Server,
   CreditCard,
@@ -32,6 +33,7 @@ export default function DashboardSidebar({ isOpen, closeSidebar }) {
     { label: 'Tickets', path: '/admin/tickets', icon: Ticket },
     { label: 'Invoices', path: '/admin/invoices', icon: FileText },
     { label: 'Services', path: '/admin/services', icon: Briefcase },
+    { label: 'Products', path: '/admin/products', icon: Package },
     { label: 'Leads', path: '/admin/leads', icon: Target },
     { label: 'Settings', path: '/admin/settings', icon: Settings },
   ];

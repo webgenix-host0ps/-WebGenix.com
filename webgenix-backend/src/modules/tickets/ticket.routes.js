@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
 import { roleMiddleware } from '../../middlewares/role.middleware.js';
 import { validate } from '../../middlewares/validate.middleware.js';
+import { createTicketLimiter, replyTicketLimiter, adminOpsLimiter } from '../../middlewares/ticketRateLimit.middleware.js';
 import * as ticketController from './ticket.controller.js';
 import * as ticketValidation from './ticket.validation.js';
 import * as replyController from './predefinedReply.controller.js';
@@ -12,8 +13,11 @@ const router = Router();
 // All routes require authentication
 router.use(authMiddleware);
 
+// Get departments (for ticket creation)
+router.get('/departments', ticketController.getDepartments);
+
 // Create a new ticket (only CLIENT for now, though logic allows restrict later, controller handles it)
-router.post('/', validate(ticketValidation.createTicketSchema), ticketController.createTicket);
+router.post('/', createTicketLimiter, validate(ticketValidation.createTicketSchema), ticketController.createTicket);
 
 // List tickets
 router.get('/', validate(ticketValidation.listTicketsSchema), ticketController.listTickets);
@@ -22,13 +26,13 @@ router.get('/', validate(ticketValidation.listTicketsSchema), ticketController.l
 router.get('/:id', ticketController.getTicket);
 
 // Add a message (reply) to a ticket
-router.post('/:id/messages', validate(ticketValidation.replyTicketSchema), ticketController.addMessage);
+router.post('/:id/messages', replyTicketLimiter, validate(ticketValidation.replyTicketSchema), ticketController.addMessage);
 
 // Change ticket status (Support/Admin)
-router.patch('/:id/status', validate(ticketValidation.changeStatusSchema), ticketController.changeStatus);
+router.patch('/:id/status', adminOpsLimiter, validate(ticketValidation.changeStatusSchema), ticketController.changeStatus);
 
 // Assign ticket (Support/Admin)
-router.patch('/:id/assign', validate(ticketValidation.assignTicketSchema), ticketController.assignTicket);
+router.patch('/:id/assign', adminOpsLimiter, validate(ticketValidation.assignTicketSchema), ticketController.assignTicket);
 
 // Close ticket
 router.post('/:id/close', ticketController.closeTicket);

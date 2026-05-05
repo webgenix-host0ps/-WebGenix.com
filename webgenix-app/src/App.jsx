@@ -21,6 +21,10 @@ import AdminTicketList from './pages/admin/AdminTicketList.jsx';
 import AdminInvoiceList from './pages/admin/AdminInvoiceList.jsx';
 import AdminLeadManagement from './pages/admin/LeadManagement.jsx';
 import AdminUserManagement from './pages/admin/UserManagement.jsx';
+import AdminClientDetail from './pages/admin/AdminClientDetail.jsx';
+import AdminProductList from './pages/admin/AdminProductList.jsx';
+import AdminProductDetail from './pages/admin/AdminProductDetail.jsx';
+import AdminOrdersList from './pages/admin/AdminOrdersList.jsx';
 
 import SupportDashboard from './pages/support/SupportDashboard.jsx';
 import SupportTicketList from './pages/support/SupportTicketList.jsx';
@@ -65,11 +69,13 @@ function Layout({ children }) {
 }
 
 export default function App() {
+  const location = useLocation();
+  
   return (
     <AuthProvider>
       <CartProvider>
         <Layout>
-          <Routes>
+          <Routes location={location} key={location.pathname}>
             {/* Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -133,8 +139,12 @@ export default function App() {
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/tickets" element={<ProtectedRoute allowedRoles={['admin']}><AdminTicketList /></ProtectedRoute>} />
             <Route path="/admin/invoices" element={<ProtectedRoute allowedRoles={['admin']}><AdminInvoiceList /></ProtectedRoute>} />
+            <Route path="/admin/orders" element={<ProtectedRoute allowedRoles={['admin']}><AdminOrdersList /></ProtectedRoute>} />
             <Route path="/admin/leads" element={<ProtectedRoute allowedRoles={['admin']}><AdminLeadManagement /></ProtectedRoute>} />
             <Route path="/admin/clients" element={<ProtectedRoute allowedRoles={['admin']}><AdminUserManagement /></ProtectedRoute>} />
+            <Route path="/admin/clients/:id" element={<ProtectedRoute allowedRoles={['admin']}><AdminClientDetail /></ProtectedRoute>} />
+            <Route path="/admin/products" element={<ProtectedRoute allowedRoles={['admin']}><AdminProductList /></ProtectedRoute>} />
+            <Route path="/admin/products/:id" element={<ProtectedRoute allowedRoles={['admin']}><AdminProductDetail /></ProtectedRoute>} />
             
             {/* Support Routes */}
             <Route path="/support" element={<ProtectedRoute allowedRoles={['admin', 'support']}><SupportDashboard /></ProtectedRoute>} />

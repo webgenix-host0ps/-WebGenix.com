@@ -30,7 +30,7 @@ export default function TicketDetail() {
             setIsLoading(true);
             setError('');
             const response = await getTicket(id);
-            setTicketData(response.data);
+            setTicketData(response.data.data);
         } catch (err) {
             console.error('Failed to fetch ticket:', err);
             setError(err.response?.data?.message || 'Failed to load ticket details.');

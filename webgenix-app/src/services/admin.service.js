@@ -3,34 +3,19 @@ import api from './api';
 export const adminService = {
   // Dashboard
   getStats: async () => {
-    // return api.get('/admin/stats');
-    // MOCK
-    return {
-      data: {
-        totalClients: 1250,
-        clientsTrend: 12,
-        openTickets: 45,
-        ticketsTrend: -5,
-        unpaidInvoices: 28,
-        invoicesTrend: 8,
-        leads: 120,
-        leadsTrend: 15
-      }
-    };
+    const response = await api.get('/admin/stats');
+    return response.data;
   },
 
   // Clients
   getClients: async (params) => {
-    // return api.get('/admin/clients', { params });
-    return {
-      data: {
-        clients: [
-          { _id: 'c1', name: 'Acme Corp', email: 'contact@acme.com', status: 'active', role: 'client', joinedAt: '2023-01-15' },
-          { _id: 'c2', name: 'Global Tech', email: 'info@globaltech.com', status: 'active', role: 'client', joinedAt: '2023-03-22' },
-        ],
-        totalPages: 1
-      }
-    };
+    const response = await api.get('/admin/users', { params });
+    return response.data;
+  },
+
+  getClient: async (id) => {
+    const response = await api.get(`/admin/users/${id}`);
+    return response.data;
   },
   
   // Tickets
@@ -70,39 +55,63 @@ export const adminService = {
 
   // Invoices
   getInvoices: async (params) => {
-    // return api.get('/admin/invoices', { params });
-    return {
-      data: {
-        invoices: [
-          { _id: 'INV-1001', client: { name: 'Acme Corp' }, amount: 250.00, status: 'unpaid', dueDate: '2024-05-01' },
-          { _id: 'INV-1002', client: { name: 'Global Tech' }, amount: 1500.00, status: 'paid', dueDate: '2024-04-15' }
-        ],
-        totalPages: 1
-      }
-    };
+    const response = await api.get('/billing/admin/invoices', { params });
+    return response.data;
   },
 
   createInvoice: async (data) => {
-    // return api.post('/admin/invoices', data);
-    return { data: { success: true } };
+    const response = await api.post('/billing/admin/invoices', data);
+    return response.data;
   },
 
   // Leads
   getLeads: async (params) => {
-    // return api.get('/admin/leads', { params });
+    const response = await api.get('/admin/leads', { params });
+    return response.data;
+  },
+
+  updateLead: async (id, data) => {
+    const response = await api.put(`/admin/leads/${id}`, data);
+    return response.data;
+  },
+
+  // Products
+  getProducts: async () => {
+    const response = await api.get('/billing/products');
     return {
       data: {
-        leads: [
-          { _id: 'l1', name: 'Startup Inc', email: 'ceo@startup.io', status: 'new', createdAt: '2024-04-22' },
-          { _id: 'l2', name: 'Mega Corp', email: 'it@megacorp.com', status: 'negotiation', createdAt: '2024-04-10' }
-        ],
-        totalPages: 1
+        products: response.data
       }
     };
   },
 
-  updateLead: async (id, data) => {
-    // return api.put(`/admin/leads/${id}`, data);
-    return { data: { success: true } };
+  getProduct: async (id) => {
+    const response = await api.get(`/billing/products/${id}`);
+    return {
+      data: {
+        product: response.data
+      }
+    };
+  },
+
+  createProduct: async (data) => {
+    const response = await api.post('/billing/products', data);
+    return response.data;
+  },
+
+  updateProduct: async (id, data) => {
+    const response = await api.put(`/billing/products/${id}`, data);
+    return response.data;
+  },
+
+  // Orders
+  getOrders: async (params) => {
+    const response = await api.get('/billing/orders', { params });
+    return response.data;
+  },
+
+  getOrder: async (id) => {
+    const response = await api.get(`/billing/orders/${id}`);
+    return response.data;
   }
 };

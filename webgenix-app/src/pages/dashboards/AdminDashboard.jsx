@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Users, TicketIcon, Settings, Activity, Zap, TrendingUp, AlertCircle, Search } from 'lucide-react';
+import { Shield, Users, Ticket, Settings, Activity, Zap, TrendingUp, AlertCircle, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 
@@ -15,7 +15,7 @@ export default function AdminDashboard() {
 
     const adminStats = [
         { label: 'Total Operators', value: '1,284', icon: Users, color: 'blue', trend: '+14%' },
-        { label: 'System Signals', value: '42', icon: TicketIcon, color: 'amber', trend: 'Priority' },
+        { label: 'System Signals', value: '42', icon: Ticket, color: 'amber', trend: 'Priority' },
         { label: 'Network Load', value: '24%', icon: Activity, color: 'green', trend: 'Stable' },
         { label: 'Energy Flux', value: '1.2kW', icon: Zap, color: 'purple', trend: 'Optimal' },
     ];

@@ -17,9 +17,11 @@ export default function LeadManagement() {
     setLoading(true);
     try {
       const response = await adminService.getLeads({ status: statusFilter });
-      setLeads(response.data.leads);
+      // Handle both old and new API response structure
+      setLeads(response.data?.leads || response.data || []);
     } catch (error) {
       console.error(error);
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -45,7 +47,7 @@ export default function LeadManagement() {
     { key: 'email', header: 'COMMUNICATION NODE', renderCell: (r) => (
         <span className="text-text-muted font-bold lowercase opacity-60">{r.email}</span>
     )},
-    { key: 'status', header: 'SIGNAL STATUS', renderCell: (r) => <StatusBadge status={r.status} /> },
+    { key: 'status', header: 'SIGNAL STATUS', renderCell: (r) => <StatusBadge status={r.isActive ? 'active' : 'inactive'} /> },
     { key: 'createdAt', header: 'INCEPTION DATE', sortable: true, renderCell: (r) => (
         <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">{new Date(r.createdAt).toLocaleDateString()}</span>
     )},
@@ -93,7 +95,7 @@ export default function LeadManagement() {
             {[
                 { label: 'Total Prospects', value: leads.length, icon: Users, color: 'blue' },
                 { label: 'Conversion Flux', value: '12.4%', icon: TrendingUp, color: 'green' },
-                { label: 'Active Signals', value: leads.filter(l => l.status !== 'won' && l.status !== 'lost').length, icon: Filter, color: 'amber' },
+                { label: 'Active Signals', value: leads.filter(l => l.isActive).length, icon: Filter, color: 'amber' },
             ].map((stat, i) => (
                 <div key={i} className="bg-white/[0.03] border border-white/[0.06] p-8 rounded-[32px] group hover:border-accent/20 transition-all">
                     <div className="flex items-center justify-between mb-4">

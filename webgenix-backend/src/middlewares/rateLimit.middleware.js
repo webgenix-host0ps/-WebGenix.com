@@ -4,7 +4,7 @@ import { ApiError } from '../utils/ApiError.js';
 // General API rate limiter
 export const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 1000, // Increased for development/testing (from 100)
     message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
@@ -16,7 +16,7 @@ export const apiLimiter = rateLimit({
 // Strict rate limiter for auth endpoints
 export const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // Limit each IP to 10 requests per windowMs
+    max: 500, // Further increased for development (was 50)
     skipSuccessfulRequests: true, // Don't count successful requests
     message: 'Too many authentication attempts, please try again later.',
     standardHeaders: true,

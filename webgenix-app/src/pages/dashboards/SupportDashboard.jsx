@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, LayoutDashboard, TicketIcon, MessageSquare, Clock, CheckCircle, Search, Filter } from 'lucide-react';
+import { Shield, LayoutDashboard, Ticket, MessageSquare, Clock, CheckCircle, Search, Filter } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 
@@ -35,7 +35,7 @@ export default function SupportDashboard() {
                         
                         <div className="mt-10 flex flex-wrap gap-4">
                             <Link to="/tickets" className="px-8 py-4 bg-accent hover:bg-accent-hover text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-accent/20 hover:shadow-accent/40 flex items-center gap-3">
-                                <TicketIcon size={16} /> Open Ticket Queue
+                                <Ticket size={16} /> Open Ticket Queue
                             </Link>
                             <button className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all flex items-center gap-3">
                                 <Search size={16} /> Locate Case

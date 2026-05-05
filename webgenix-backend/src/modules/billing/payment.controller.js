@@ -10,8 +10,25 @@ export const razorpayWebhook = asyncHandler(async (req, res) => {
 });
 
 export const createRazorpayOrder = asyncHandler(async (req, res) => {
+    console.log('[PaymentController] createRazorpayOrder called');
+    console.log('[PaymentController] req.userId:', req.userId);
+    console.log('[PaymentController] req.body:', req.body);
+    
     const { invoiceId } = req.body;
+    
+    if (!invoiceId) {
+        console.error('[PaymentController] Missing invoiceId');
+        throw new ApiError(400, 'Invoice ID is required');
+    }
+    
+    if (!req.userId) {
+        console.error('[PaymentController] Missing req.userId - auth not working');
+        throw new ApiError(401, 'Authentication required');
+    }
+    
     const result = await razorpayService.createRazorpayOrder(invoiceId, req.userId);
+    console.log('[PaymentController] Razorpay order created:', result ? 'Success' : 'Failed');
+    
     res.json({
         success: true,
         data: result,

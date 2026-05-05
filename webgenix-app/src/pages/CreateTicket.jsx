@@ -1,26 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createTicket } from '../services/ticket.service';
 import { ChevronRight, Send, AlertTriangle, Shield, Clock, Activity } from 'lucide-react';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
+import api from '../services/api';
 
 export default function CreateTicket() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    
-    const departments = [
-        { _id: '662b1f1a1c4b2a1f1a1c4b2a', name: 'General Support' },
-        { _id: '662b1f1a1c4b2a1f1a1c4b2b', name: 'Billing' },
-        { _id: '662b1f1a1c4b2a1f1a1c4b2c', name: 'Technical Support' }
-    ];
+    const [departments, setDepartments] = useState([]);
+    const [loadingDepartments, setLoadingDepartments] = useState(true);
 
     const [formData, setFormData] = useState({
         subject: '',
         description: '',
-        departmentId: departments[0]._id,
+        departmentId: '',
         priority: 'MEDIUM'
     });
+
+    // Fetch departments from API
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const response = await api.get('/tickets/departments');
+                setDepartments(response.data.data || response.data);
+                // Set default department after fetching
+                if (response.data.data?.length > 0) {
+                    setFormData(prev => ({
+                        ...prev,
+                        departmentId: response.data.data[0]._id
+                    }));
+                }
+            } catch (error) {
+                console.error('Failed to fetch departments:', error);
+                // Fallback to hardcoded departments if API fails
+                const fallbackDepts = [
+                    { _id: '662b1f1a1c4b2a1f1a1c4b2a', name: 'General Support' },
+                    { _id: '662b1f1a1c4b2a1f1a1c4b2b', name: 'Billing' },
+                    { _id: '662b1f1a1c4b2a1f1a1c4b2c', name: 'Technical Support' }
+                ];
+                setDepartments(fallbackDepts);
+                setFormData(prev => ({
+                    ...prev,
+                    departmentId: fallbackDepts[0]._id
+                }));
+            } finally {
+                setLoadingDepartments(false);
+            }
+        };
+        fetchDepartments();
+    }, []);
 
     const handleChange = (e) => {
         setFormData(prev => ({
@@ -41,7 +71,7 @@ export default function CreateTicket() {
             setIsLoading(true);
             setError('');
             const response = await createTicket(formData);
-            const newTicket = response.data?.data;
+            const newTicket = response.data;
             if (newTicket?._id) {
                 navigate(`/tickets/${newTicket._id}`);
             } else {
@@ -96,12 +126,19 @@ export default function CreateTicket() {
                                             name="departmentId"
                                             value={formData.departmentId}
                                             onChange={handleChange}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white appearance-none focus:outline-none focus:border-accent transition-all cursor-pointer"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest text-white appearance-none focus:outline-none focus:border-accent transition-all cursor-pointer disabled:opacity-50"
                                             required
+                                            disabled={loadingDepartments}
                                         >
-                                            {departments.map(dept => (
-                                                <option key={dept._id} value={dept._id} className="bg-dark-800">{dept.name}</option>
-                                            ))}
+                                            {loadingDepartments ? (
+                                                <option value="">Loading departments...</option>
+                                            ) : departments.length === 0 ? (
+                                                <option value="">No departments available</option>
+                                            ) : (
+                                                departments.map(dept => (
+                                                    <option key={dept._id} value={dept._id} className="bg-dark-800">{dept.name}</option>
+                                                ))
+                                            )}
                                         </select>
                                         <Shield size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none group-focus-within/select:text-accent transition-colors" />
                                     </div>

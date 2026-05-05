@@ -4,7 +4,8 @@ import DataTable from '../../components/dashboard/DataTable';
 import StatusBadge from '../../components/dashboard/StatusBadge';
 import ActionMenu from '../../components/dashboard/ActionMenu';
 import { adminService } from '../../services/admin.service';
-import { Shield, Ban, CheckCircle } from 'lucide-react';
+import { Shield, Ban, CheckCircle, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -14,10 +15,11 @@ export default function UserManagement() {
     setLoading(true);
     try {
       const response = await adminService.getClients({});
-      // Assuming getClients returns all users for admin
-      setUsers(response.data.clients);
+      // Handle both old and new API response structure
+      setUsers(response.data?.users || response.data?.clients || []);
     } catch (error) {
       console.error(error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -28,7 +30,16 @@ export default function UserManagement() {
   }, []);
 
   const columns = [
-    { key: 'name', header: 'Name', sortable: true },
+    { 
+      key: 'name', 
+      header: 'Name', 
+      sortable: true,
+      renderCell: (r) => (
+        <Link to={`/admin/clients/${r._id}`} className="text-accent hover:underline font-bold">
+          {r.name}
+        </Link>
+      )
+    },
     { key: 'email', header: 'Email' },
     { 
       key: 'role', 
@@ -39,14 +50,15 @@ export default function UserManagement() {
         </span>
       ) 
     },
-    { key: 'status', header: 'Status', renderCell: (r) => <StatusBadge status={r.status} /> },
+    { key: 'status', header: 'Status', renderCell: (r) => <StatusBadge status={r.isActive ? 'active' : 'inactive'} /> },
     { 
       key: 'actions', 
       header: '', 
       renderCell: (r) => (
         <ActionMenu actions={[
+          { label: 'View Profile', icon: User, onClick: () => window.location.href = `/admin/clients/${r._id}` },
           { label: 'Change Role', icon: Shield, onClick: () => console.log('Change role', r._id) },
-          { label: r.status === 'active' ? 'Deactivate' : 'Activate', icon: r.status === 'active' ? Ban : CheckCircle, danger: r.status === 'active', onClick: () => console.log('Toggle status', r._id) }
+          { label: r.isActive ? 'Deactivate' : 'Activate', icon: r.isActive ? Ban : CheckCircle, danger: r.isActive, onClick: () => console.log('Toggle status', r._id) }
         ]} />
       ) 
     }

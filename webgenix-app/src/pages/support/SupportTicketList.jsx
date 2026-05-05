@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import DataTable from '../../components/dashboard/DataTable';
 import FilterBar from '../../components/dashboard/FilterBar';
@@ -15,38 +15,33 @@ export default function SupportTicketList() {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [viewTab, setViewTab] = useState('all'); // 'all' or 'mine'
-  const [activeTab, setActiveTab] = useState('active'); // 'active' or 'closed'
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'open', 'inprogress', 'answered', 'closed'
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     setLoading(true);
     try {
       const response = await supportService.getTickets({ status: statusFilter, search, view: viewTab });
       let filteredTickets = response.data?.tickets || [];
       
       if (!statusFilter) {
-        if (activeTab === 'active') {
-          filteredTickets = filteredTickets.filter(t => !['ANSWERED', 'RESOLVED', 'CLOSED'].includes(t.status?.toUpperCase()));
-        } else {
-          filteredTickets = filteredTickets.filter(t => ['ANSWERED', 'RESOLVED', 'CLOSED'].includes(t.status?.toUpperCase()));
+        if (activeTab === 'open') {
+          filteredTickets = filteredTickets.filter(t => ['OPEN', 'CLIENT_REPLY'].includes(t.status?.toUpperCase()));
+        } else if (activeTab === 'inprogress') {
+          filteredTickets = filteredTickets.filter(t => t.status?.toUpperCase() === 'IN_PROGRESS');
+        } else if (activeTab === 'answered') {
+          filteredTickets = filteredTickets.filter(t => t.status?.toUpperCase() === 'ANSWERED');
+        } else if (activeTab === 'closed') {
+          filteredTickets = filteredTickets.filter(t => ['RESOLVED', 'CLOSED'].includes(t.status?.toUpperCase()));
         }
       }
       
       setTickets(filteredTickets);
     } catch (error) {
       console.error('Failed to fetch tickets:', error);
-      if (error.message === 'Network Error') {
-        alert('Cannot connect to server. Please make sure the backend is running on port 5000.');
-      } else if (error.response?.status === 401) {
-        alert('Session expired. Please log in again.');
-      } else if (error.response?.status === 403) {
-        alert('You do not have permission to view tickets.');
-      } else {
-        alert(error.response?.data?.message || 'Failed to load tickets.');
-      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, search, viewTab, activeTab]);
 
   useEffect(() => {
     fetchTickets();
@@ -83,7 +78,7 @@ export default function SupportTicketList() {
           onClick={async () => {
             try {
               const response = await supportService.getTicket(r._id);
-              setSelectedTicket({ ...response.data.ticket, messages: response.data.messages });
+              setSelectedTicket({ ...response.data.data.ticket, messages: response.data.data.messages });
             } catch (err) {
               console.error(err);
               setSelectedTicket(r);
@@ -121,21 +116,23 @@ export default function SupportTicketList() {
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6 border-b border-dark-700">
-        <button 
-          onClick={() => { setActiveTab('active'); setStatusFilter(''); }}
-          className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'active' ? 'text-accent' : 'text-text-muted hover:text-text-primary'}`}
-        >
-          Active Queue
-          {activeTab === 'active' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />}
-        </button>
-        <button 
-          onClick={() => { setActiveTab('closed'); setStatusFilter(''); }}
-          className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'closed' ? 'text-accent' : 'text-text-muted hover:text-text-primary'}`}
-        >
-          Answered & Closed
-          {activeTab === 'closed' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />}
-        </button>
+      <div className="flex gap-6 mb-6 border-b border-dark-700 overflow-x-auto no-scrollbar">
+        {[
+          { id: 'all', label: 'All Tickets' },
+          { id: 'open', label: 'Open' },
+          { id: 'inprogress', label: 'In Progress' },
+          { id: 'answered', label: 'Answered' },
+          { id: 'closed', label: 'Resolved & Closed' }
+        ].map((tab) => (
+          <button 
+            key={tab.id}
+            onClick={() => { setActiveTab(tab.id); setStatusFilter(''); }}
+            className={`whitespace-nowrap pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === tab.id ? 'text-accent' : 'text-text-muted hover:text-text-primary'}`}
+          >
+            {tab.label}
+            {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />}
+          </button>
+        ))}
       </div>
 
       <div className="mb-6 flex gap-2">

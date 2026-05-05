@@ -15,6 +15,17 @@ export default function AdminDashboard() {
         setStats(response.data);
       } catch (error) {
         console.error('Failed to fetch stats:', error);
+        // Set default stats on error
+        setStats({
+          totalClients: 0,
+          clientsTrend: 0,
+          openTickets: 0,
+          ticketsTrend: 0,
+          unpaidInvoices: 0,
+          invoicesTrend: 0,
+          leads: 0,
+          leadsTrend: 0
+        });
       } finally {
         setLoading(false);
       }

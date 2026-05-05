@@ -18,9 +18,11 @@ export default function AdminInvoiceList() {
     setLoading(true);
     try {
       const response = await adminService.getInvoices({ status: statusFilter, search });
-      setInvoices(response.data.invoices);
+      // Handle both old and new API response structure
+      setInvoices(response.data?.invoices || response.data || []);
     } catch (error) {
       console.error(error);
+      setInvoices([]);
     } finally {
       setLoading(false);
     }
@@ -40,10 +42,10 @@ export default function AdminInvoiceList() {
   };
 
   const columns = [
-    { key: '_id', header: 'Invoice #', sortable: true, renderCell: (r) => <span className="font-mono">{r._id}</span> },
-    { key: 'client', header: 'Client', renderCell: (r) => r.client?.name },
-    { key: 'amount', header: 'Amount', sortable: true, renderCell: (r) => `$${r.amount.toFixed(2)}` },
-    { key: 'dueDate', header: 'Due Date', sortable: true, renderCell: (r) => new Date(r.dueDate).toLocaleDateString() },
+    { key: 'invoiceNumber', header: 'Invoice #', sortable: true, renderCell: (r) => <span className="font-mono">{r.invoiceNumber || r._id?.slice(-8)}</span> },
+    { key: 'client', header: 'Client', renderCell: (r) => r.userId?.name || r.client?.name || 'N/A' },
+    { key: 'total', header: 'Amount', sortable: true, renderCell: (r) => `₹${(r.total || r.amount || 0).toFixed(2)}` },
+    { key: 'dueDate', header: 'Due Date', sortable: true, renderCell: (r) => r.dueDate ? new Date(r.dueDate).toLocaleDateString() : '-' },
     { key: 'status', header: 'Status', renderCell: (r) => <StatusBadge status={r.status} /> }
   ];
 
