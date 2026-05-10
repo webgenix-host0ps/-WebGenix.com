@@ -1,15 +1,51 @@
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, LayoutDashboard, Ticket, MessageSquare, Clock, CheckCircle, Search, Filter } from 'lucide-react';
+import { Shield, LayoutDashboard, Ticket, MessageSquare, Clock, CheckCircle, Search, Filter, Activity, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
+import { getTickets } from '../../services/ticket.service';
 
 export default function SupportDashboard() {
     const { user } = useAuth();
+    const [stats, setStats] = useState({
+        openTickets: 0,
+        answeredTickets: 0,
+        resolvedToday: 0,
+        avgResponseTime: 'N/A'
+    });
+    const [priorityTickets, setPriorityTickets] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchSupportData = async () => {
+            try {
+                const response = await getTickets({ limit: 10, sort: 'updatedAt:desc' });
+                const tickets = response.data || [];
+                
+                const open = tickets.filter(t => ['OPEN', 'CLIENT_REPLY'].includes(t.status)).length;
+                const answered = tickets.filter(t => t.status === 'ANSWERED').length;
+                const priority = tickets.filter(t => t.priority === 'HIGH' || t.priority === 'URGENT').slice(0, 5);
+
+                setStats({
+                    openTickets: open,
+                    answeredTickets: answered,
+                    resolvedToday: tickets.filter(t => t.status === 'CLOSED' && new Date(t.updatedAt).toDateString() === new Date().toDateString()).length,
+                    avgResponseTime: '12m' // Placeholder for now
+                });
+                setPriorityTickets(priority);
+            } catch (error) {
+                console.error('Failed to fetch support data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchSupportData();
+    }, []);
 
     const supportMetrics = [
-        { label: 'Active Tickets', value: '18', icon: MessageSquare, color: 'blue' },
-        { label: 'Avg. Response', value: '14m', icon: Clock, color: 'amber' },
-        { label: 'Resolved Today', value: '32', icon: CheckCircle, color: 'green' },
+        { label: 'Active Tickets', value: stats.openTickets, icon: MessageSquare, color: 'blue' },
+        { label: 'Avg. Response', value: stats.avgResponseTime, icon: Clock, color: 'amber' },
+        { label: 'Answered', value: stats.answeredTickets, icon: CheckCircle, color: 'green' },
     ];
 
     return (
@@ -68,21 +104,43 @@ export default function SupportDashboard() {
                         </div>
 
                         <div className="bg-white/[0.02] border border-white/[0.06] rounded-[40px] p-2 overflow-hidden shadow-2xl">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="p-6 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition-all cursor-pointer group flex items-center justify-between gap-6">
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-12 h-12 rounded-2xl bg-dark-700 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">#92{i}4</div>
-                                        <div>
-                                            <h4 className="text-sm font-black text-white group-hover:text-accent transition-colors mb-1">Server Latency In Region_US_West_{i}</h4>
-                                            <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest opacity-60">Reported by High_Value_Client_{i} • 12m ago</p>
+                            {loading ? (
+                                <div className="p-20 text-center">
+                                    <Loader2 className="mx-auto text-accent animate-spin mb-4" />
+                                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Scanning Frequencies...</p>
+                                </div>
+                            ) : priorityTickets.length === 0 ? (
+                                <div className="p-20 text-center opacity-40">
+                                    <Shield className="mx-auto text-text-muted mb-4" />
+                                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">No Priority Alerts Detected</p>
+                                </div>
+                            ) : (
+                                priorityTickets.map((ticket) => (
+                                    <div 
+                                        key={ticket._id} 
+                                        onClick={() => navigate(`/tickets/${ticket._id}`)}
+                                        className="p-6 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition-all cursor-pointer group flex items-center justify-between gap-6"
+                                    >
+                                        <div className="flex items-center gap-5">
+                                            <div className="w-12 h-12 rounded-2xl bg-dark-700 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">#{ticket.ticketId?.substring(0, 5)}</div>
+                                            <div>
+                                                <h4 className="text-sm font-black text-white group-hover:text-accent transition-colors mb-1">{ticket.subject}</h4>
+                                                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest opacity-60">Reported by {ticket.client?.name || 'Customer'} • {new Date(ticket.updatedAt).toLocaleTimeString()}</p>
+                                            </div>
+                                        </div>
+                                        <div className="hidden sm:block">
+                                            <span className={`px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest ${
+                                                ticket.priority === 'URGENT' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 
+                                                ticket.priority === 'HIGH' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                                'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                            }`}>
+                                                {ticket.priority}
+                                            </span>
                                         </div>
                                     </div>
-                                    <div className="hidden sm:block">
-                                        <span className="px-3 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-black uppercase tracking-widest">Urgent</span>
-                                    </div>
-                                </div>
-                            ))}
-                            <Link to="/tickets" className="block p-5 text-center text-[10px] font-black text-text-muted uppercase tracking-[0.3em] hover:text-white transition-colors">
+                                ))
+                            )}
+                            <Link to="/support/tickets" className="block p-5 text-center text-[10px] font-black text-text-muted uppercase tracking-[0.3em] hover:text-white transition-colors">
                                 View Full Synchronization Log
                             </Link>
                         </div>

@@ -54,10 +54,12 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdate, o
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Ticket #${ticket._id?.substring(0, 6).toUpperCase()}`} size="lg">
-      <div className="flex flex-col h-[70vh]">
-        {/* Header Info */}
-        <div className="bg-dark-900 rounded-xl p-4 mb-4 grid grid-cols-2 md:grid-cols-4 gap-4 border border-dark-700">
+    <Modal isOpen={isOpen} onClose={onClose} title={`Ticket #${ticket._id?.substring(0, 6).toUpperCase()}`} size="xl">
+      <div className="flex flex-col lg:flex-row h-[75vh] gap-6">
+        {/* Main Thread Area */}
+        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+          {/* Header Info */}
+          <div className="bg-dark-900 rounded-xl p-4 mb-4 grid grid-cols-2 md:grid-cols-4 gap-4 border border-dark-700 shrink-0">
           <div>
             <p className="text-xs text-text-muted mb-1">Client</p>
             <p className="text-sm font-medium">{ticket.client?.name || 'Unknown'}</p>
@@ -227,6 +229,55 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdate, o
             </div>
           </div>
         </form>
+        </div>
+        
+        {/* Client Context Sidebar (Staff Only) */}
+        {isStaff && (ticket.clientServices || ticket.clientInvoices) && (
+          <div className="w-full lg:w-80 flex flex-col gap-4 overflow-y-auto custom-scrollbar shrink-0">
+            {/* Services */}
+            <div className="bg-dark-900 border border-dark-700 rounded-xl p-4">
+              <h4 className="text-sm font-bold text-white mb-3">Active Services</h4>
+              {ticket.clientServices?.length > 0 ? (
+                <div className="space-y-3">
+                  {ticket.clientServices.map(service => (
+                    <div key={service._id} className="bg-dark-800 p-3 rounded-lg border border-dark-600">
+                      <p className="font-medium text-sm text-white truncate" title={service.name}>{service.name}</p>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs text-text-muted">${(service.recurringAmount || service.firstPaymentAmount || 0).toFixed(2)}</span>
+                        <StatusBadge status={service.status} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-text-muted">No active services found.</p>
+              )}
+            </div>
+
+            {/* Invoices */}
+            <div className="bg-dark-900 border border-dark-700 rounded-xl p-4">
+              <h4 className="text-sm font-bold text-white mb-3">Recent Invoices</h4>
+              {ticket.clientInvoices?.length > 0 ? (
+                <div className="space-y-3">
+                  {ticket.clientInvoices.map(invoice => (
+                    <div key={invoice._id} className="bg-dark-800 p-3 rounded-lg border border-dark-600">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-mono text-xs text-text-muted">#{invoice._id?.substring(0,8)}</p>
+                        <span className="text-xs font-medium">${(invoice.amount || invoice.total || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-text-muted">{new Date(invoice.dateIssued || invoice.createdAt || invoice.date).toLocaleDateString()}</span>
+                        <StatusBadge status={invoice.status} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-text-muted">No recent invoices found.</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   );

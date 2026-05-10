@@ -94,6 +94,11 @@ const serviceSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Server',
     },
+    serverGroupId: {
+        type: Schema.Types.ObjectId,
+        ref: 'ServerGroup',
+    },
+    hostingAccountId: String,
     username: {
         type: String,
     },

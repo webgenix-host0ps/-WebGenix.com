@@ -54,12 +54,18 @@ const userSchema = new Schema({
 
     twoFactorEnabled: { type: Boolean, default: false },
     twoFactorSecret: String,
+    tempTwoFactorSecret: String,
     backupCodes: [String],
 
     clientProfile: clientProfileSchema,
 
     lastLogin: Date,
     lastLoginIp: String,
+
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockedUntil: Date,
+    adminNotes: String,
+    creditBalance: { type: Number, default: 0 },
 
 }, { timestamps: true });
 

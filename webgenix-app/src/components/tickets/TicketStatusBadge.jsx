@@ -11,10 +11,14 @@ export default function TicketStatusBadge({ status }) {
                 return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
             case 'IN_PROGRESS':
                 return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+            case 'ON_HOLD':
+                return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+            case 'WAITING_FOR_3RD_PARTY':
+                return 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20';
             case 'RESOLVED':
                 return 'bg-green-500/10 text-green-500 border-green-500/20';
             case 'CLOSED':
-                return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+                return 'bg-red-500/10 text-red-400 border-red-500/20';
             default:
                 return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
         }
@@ -22,7 +26,7 @@ export default function TicketStatusBadge({ status }) {
 
     return (
         <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border shadow-sm ${getStatusTheme(status)}`}>
-            {status?.replace('_', ' ')}
+            {status?.replace(/_/g, ' ')}
         </span>
     );
 }

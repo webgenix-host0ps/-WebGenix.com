@@ -76,9 +76,21 @@ router.post('/products/:id/duplicate', billingController.duplicateProduct);
 
 // All invoices (admin)
 router.get('/admin/invoices', billingController.listAllInvoices);
+router.post('/admin/invoices', billingController.createInvoice);
+router.patch('/admin/invoices/:id/status', billingController.updateInvoiceStatus);
+
+// All services (admin)
+router.get('/admin/services', billingController.listAllServices);
+router.patch('/admin/services/:id/status', billingController.updateServiceStatus);
+
+// Refund processing
+router.post('/admin/invoices/:id/refund', billingController.processRefund);
 
 // Proration calculation
 router.get('/services/:id/proration', billingController.calculateProration);
+
+// Service cancellation request
+router.post('/services/:id/cancel', billingController.requestCancellation);
 
 // Promo codes CRUD
 router.post('/promocode', billingController.createPromoCode);

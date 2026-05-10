@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import DataTable from '../../components/dashboard/DataTable';
 import FilterBar from '../../components/dashboard/FilterBar';
 import StatusBadge from '../../components/dashboard/StatusBadge';
 import InvoiceFormModal from '../../components/dashboard/InvoiceFormModal';
 import { adminService } from '../../services/admin.service';
-import { Plus } from 'lucide-react';
+import { Plus, CheckCircle, Eye } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function AdminInvoiceList() {
   const [invoices, setInvoices] = useState([]);
@@ -35,9 +37,24 @@ export default function AdminInvoiceList() {
   const handleCreateInvoice = async (data) => {
     try {
       await adminService.createInvoice(data);
+      toast.success('Invoice created successfully');
+      setShowModal(false);
       fetchInvoices();
     } catch (error) {
+      toast.error('Failed to create invoice');
       console.error(error);
+    }
+  };
+
+  const handleMarkPaid = async (id) => {
+    if (window.confirm('Are you sure you want to mark this invoice as paid?')) {
+      try {
+        await adminService.updateInvoiceStatus(id, 'paid');
+        toast.success('Invoice marked as paid');
+        fetchInvoices();
+      } catch (error) {
+        toast.error('Failed to update invoice');
+      }
     }
   };
 
@@ -46,7 +63,31 @@ export default function AdminInvoiceList() {
     { key: 'client', header: 'Client', renderCell: (r) => r.userId?.name || r.client?.name || 'N/A' },
     { key: 'total', header: 'Amount', sortable: true, renderCell: (r) => `₹${(r.total || r.amount || 0).toFixed(2)}` },
     { key: 'dueDate', header: 'Due Date', sortable: true, renderCell: (r) => r.dueDate ? new Date(r.dueDate).toLocaleDateString() : '-' },
-    { key: 'status', header: 'Status', renderCell: (r) => <StatusBadge status={r.status} /> }
+    { key: 'status', header: 'Status', renderCell: (r) => <StatusBadge status={r.status} /> },
+    { 
+      key: 'actions', 
+      header: '', 
+      renderCell: (r) => (
+        <div className="flex gap-2 justify-end">
+          <Link 
+            to={`/admin/invoices/${r._id}`}
+            className="p-2 hover:bg-dark-600 rounded-lg transition-colors"
+            title="View Details"
+          >
+            <Eye size={16} className="text-text-muted" />
+          </Link>
+          {r.status !== 'paid' && (
+            <button 
+              onClick={() => handleMarkPaid(r._id)}
+              className="p-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"
+              title="Mark as Paid"
+            >
+              <CheckCircle size={16} />
+            </button>
+          )}
+        </div>
+      )
+    }
   ];
 
   return (

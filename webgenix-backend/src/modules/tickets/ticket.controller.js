@@ -40,7 +40,14 @@ export const createTicket = asyncHandler(async (req, res) => {
             throw new ApiError(404, 'Invalid department selected');
         }
 
-        const ticket = await ticketService.createTicket(req.userId, req.body, req);
+        const attachments = req.files ? req.files.map(file => ({
+            fileName: file.originalname,
+            fileUrl: `/uploads/tickets/${file.filename}`,
+            fileType: file.mimetype,
+            fileSize: file.size
+        })) : [];
+
+        const ticket = await ticketService.createTicket(req.userId, { ...req.body, attachments }, req);
 
         res.status(201).json({
             success: true,
@@ -83,7 +90,7 @@ export const listTickets = asyncHandler(async (req, res) => {
 
 export const getTicket = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { ticket, messages } = await ticketService.getTicketWithMessages(id, req.user);
+    const { ticket, messages, clientServices, clientInvoices } = await ticketService.getTicketWithMessages(id, req.user);
 
     if (!ticketPermissions.canViewTicket(req.user, ticket)) {
         throw new ApiError(403, 'You do not have permission to view this ticket');
@@ -94,6 +101,8 @@ export const getTicket = asyncHandler(async (req, res) => {
         data: {
             ticket,
             messages,
+            clientServices,
+            clientInvoices
         },
     });
 });
@@ -101,13 +110,24 @@ export const getTicket = asyncHandler(async (req, res) => {
 export const addMessage = asyncHandler(async (req, res) => {
     const { id } = req.params;
     
+    console.log('DEBUG: Request body:', req.body);
+    console.log('DEBUG: User role:', req.user.role);
+    console.log('DEBUG: Files:', req.files);
+    
     // P2: Efficient permission check (fetch only ticket, not all messages)
     const ticket = await ticketService.getTicketById(id);
     if (!ticketPermissions.canReply(req.user, ticket)) {
         throw new ApiError(403, 'You do not have permission to reply to this ticket');
     }
 
-    const message = await ticketService.addMessage(id, req.userId, req.user.role, req.body, req);
+    const attachments = req.files ? req.files.map(file => ({
+        fileName: file.originalname,
+        fileUrl: `/uploads/tickets/${file.filename}`,
+        fileType: file.mimetype,
+        fileSize: file.size
+    })) : [];
+
+    const message = await ticketService.addMessage(id, req.userId, req.user.role, { ...req.body, attachments }, req);
 
     res.status(201).json({
         success: true,
@@ -186,5 +206,39 @@ export const submitRating = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         data: ticket,
+    });
+});
+
+export const mergeTickets = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { sourceTicketIds } = req.body;
+
+    if (!Array.isArray(sourceTicketIds) || sourceTicketIds.length === 0) {
+        throw new ApiError(400, 'sourceTicketIds must be a non-empty array');
+    }
+
+    const ticket = await ticketService.mergeTickets(id, sourceTicketIds, req.userId, req);
+
+    res.status(200).json({
+        success: true,
+        data: ticket,
+        message: 'Tickets merged successfully',
+    });
+});
+
+export const transferDepartment = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { departmentId } = req.body;
+
+    if (!departmentId) {
+        throw new ApiError(400, 'departmentId is required');
+    }
+
+    const ticket = await ticketService.transferDepartment(id, departmentId, req.userId, req);
+
+    res.status(200).json({
+        success: true,
+        data: ticket,
+        message: 'Ticket transferred successfully',
     });
 });

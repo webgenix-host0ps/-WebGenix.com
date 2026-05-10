@@ -20,7 +20,11 @@ export const getTicket = async (ticketId) => {
 };
 
 export const replyToTicket = async (ticketId, messageData) => {
-    const response = await api.post(`/tickets/${ticketId}/messages`, messageData);
+    const response = await api.post(`/tickets/${ticketId}/messages`, messageData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return response.data;
 };
 
@@ -46,5 +50,20 @@ export const getPredefinedReplies = async (departmentId) => {
 
 export const toggleWatcher = async (ticketId) => {
     const response = await api.post(`/tickets/${ticketId}/watch`);
+    return response.data;
+};
+
+export const mergeTickets = async (primaryTicketId, sourceTicketIds) => {
+    const response = await api.post(`/tickets/${primaryTicketId}/merge`, { sourceTicketIds });
+    return response.data;
+};
+
+export const transferTicket = async (ticketId, departmentId) => {
+    const response = await api.patch(`/tickets/${ticketId}/transfer`, { departmentId });
+    return response.data;
+};
+
+export const getDepartments = async () => {
+    const response = await api.get('/tickets/departments');
     return response.data;
 };

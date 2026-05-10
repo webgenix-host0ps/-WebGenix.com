@@ -1,23 +1,45 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Users, Ticket, Settings, Activity, Zap, TrendingUp, AlertCircle, Search } from 'lucide-react';
+import { Shield, Users, Ticket, Settings, Activity, Zap, TrendingUp, AlertCircle, Search, FileText, Briefcase, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
+import { adminService } from '../../services/admin.service';
 
 export default function AdminDashboard() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState(null);
+
+    const [logs, setLogs] = useState([]);
 
     useEffect(() => {
-        // Simulate data loading
-        setTimeout(() => setLoading(false), 800);
+        const fetchDashboardData = async () => {
+            try {
+                const [statsRes, logsRes] = await Promise.all([
+                    adminService.getStats(),
+                    adminService.getLogs({ limit: 5 })
+                ]);
+                setStats(statsRes.data);
+                setLogs(logsRes.data || []);
+            } catch (error) {
+                console.error('Failed to fetch admin data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDashboardData();
     }, []);
 
-    const adminStats = [
-        { label: 'Total Operators', value: '1,284', icon: Users, color: 'blue', trend: '+14%' },
-        { label: 'System Signals', value: '42', icon: Ticket, color: 'amber', trend: 'Priority' },
-        { label: 'Network Load', value: '24%', icon: Activity, color: 'green', trend: 'Stable' },
-        { label: 'Energy Flux', value: '1.2kW', icon: Zap, color: 'purple', trend: 'Optimal' },
+    const adminStats = stats ? [
+        { label: 'Total Clients', value: stats.totalClients, icon: Users, color: 'blue', trend: `${stats.clientsTrend}%` },
+        { label: 'Open Tickets', value: stats.openTickets, icon: Ticket, color: 'amber', trend: 'Active' },
+        { label: 'Unpaid Invoices', value: stats.unpaidInvoices, icon: FileText, color: 'red', trend: 'Billing' },
+        { label: 'Active Services', value: stats.activeServices, icon: Briefcase, color: 'purple', trend: 'Live' },
+    ] : [
+        { label: 'Total Clients', value: '...', icon: Users, color: 'blue', trend: '...' },
+        { label: 'Open Tickets', value: '...', icon: Ticket, color: 'amber', trend: '...' },
+        { label: 'Unpaid Invoices', value: '...', icon: FileText, color: 'red', trend: '...' },
+        { label: 'Active Services', value: '...', icon: Briefcase, color: 'purple', trend: '...' },
     ];
 
     return (
@@ -83,21 +105,27 @@ export default function AdminDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/[0.03]">
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <tr key={i} className="hover:bg-white/[0.01] transition-colors group">
-                                            <td className="px-8 py-6 text-xs font-mono text-text-muted">2024.05.01 14:3{i}:22</td>
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-7 h-7 rounded-lg bg-dark-700 border border-white/10 flex items-center justify-center text-[10px] font-bold text-white uppercase">US</div>
-                                                    <span className="text-sm font-black text-white">Operator_{i}284</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6 text-sm text-text-secondary font-bold uppercase tracking-widest text-[10px]">Permission_Matrix_Update</td>
-                                            <td className="px-8 py-6 text-right">
-                                                <span className="px-2 py-0.5 rounded-md bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-black uppercase">Verified</span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {loading ? (
+                                        <tr><td colSpan="4" className="text-center py-20"><Loader2 className="animate-spin mx-auto text-red-400" /></td></tr>
+                                    ) : logs.length === 0 ? (
+                                        <tr><td colSpan="4" className="text-center py-20 text-[10px] font-black text-text-muted uppercase tracking-widest">No Activity Logged</td></tr>
+                                    ) : (
+                                        logs.map((log) => (
+                                            <tr key={log._id} className="hover:bg-white/[0.01] transition-colors group">
+                                                <td className="px-8 py-6 text-xs font-mono text-text-muted">{new Date(log.createdAt).toLocaleString()}</td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-7 h-7 rounded-lg bg-dark-700 border border-white/10 flex items-center justify-center text-[8px] font-bold text-white uppercase">{log.userId?.role?.substring(0, 2) || 'SY'}</div>
+                                                        <span className="text-sm font-black text-white">{log.userId?.name || 'System'}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6 text-sm text-text-secondary font-bold uppercase tracking-widest text-[10px]">{log.action}</td>
+                                                <td className="px-8 py-6 text-right">
+                                                    <span className="px-2 py-0.5 rounded-md bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-black uppercase">Verified</span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>

@@ -31,9 +31,41 @@ export default function Settings() {
         country: 'India'
     });
 
+    const [twoFactorSetupOpen, setTwoFactorSetupOpen] = useState(false);
+    const [setupData, setSetupData] = useState(null);
+    const [verificationToken, setVerificationToken] = useState('');
+    const [verifying, setVerifying] = useState(false);
+
     useEffect(() => {
-        loadUserData();
-    }, []);
+        if (twoFactorSetupOpen && !setupData) {
+            const fetchSetup = async () => {
+                try {
+                    const res = await authService.setup2FA();
+                    setSetupData(res.data);
+                } catch (err) {
+                    console.error('Failed to setup 2FA:', err);
+                    setTwoFactorSetupOpen(false);
+                }
+            };
+            fetchSetup();
+        }
+    }, [twoFactorSetupOpen]);
+
+    const handleVerify2FA = async () => {
+        setVerifying(true);
+        try {
+            await authService.verify2FA(verificationToken);
+            setMessage({ type: 'success', text: '2FA encryption node online.' });
+            setTwoFactorSetupOpen(false);
+            setSetupData(null);
+            setVerificationToken('');
+            loadUserData();
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Invalid token. Verification failed.' });
+        } finally {
+            setVerifying(false);
+        }
+    };
 
     const loadUserData = async () => {
         try {
@@ -388,7 +420,81 @@ export default function Settings() {
                             </div>
                         )}
 
-                        {activeTab !== 'profile' && (
+                        {activeTab === 'security' && (
+                            <div className="bg-white/[0.02] border border-white/[0.06] rounded-[40px] p-8 lg:p-12 shadow-2xl space-y-12">
+                                <div className="flex items-center gap-5 mb-12 pb-8 border-b border-white/5">
+                                    <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-400 border border-red-500/20">
+                                        <Shield size={28} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-3xl font-black text-white tracking-tight">Security Protocols</h2>
+                                        <p className="text-text-muted text-sm font-bold uppercase tracking-widest opacity-60">Manage account access and protection matrices</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* 2FA Card */}
+                                    <div className={`p-8 rounded-[32px] border transition-all duration-500 ${authUser?.twoFactorEnabled ? 'bg-green-500/5 border-green-500/20' : 'bg-white/[0.03] border-white/[0.06]'}`}>
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${authUser?.twoFactorEnabled ? 'bg-green-500/10 text-green-400' : 'bg-white/5 text-text-muted'}`}>
+                                                <Smartphone size={22} />
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${authUser?.twoFactorEnabled ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-text-muted'}`}>
+                                                {authUser?.twoFactorEnabled ? 'Encrypted' : 'Vulnerable'}
+                                            </span>
+                                        </div>
+                                        <h4 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Two-Factor Authentication</h4>
+                                        <p className="text-xs text-text-secondary font-medium leading-relaxed opacity-60 mb-8">
+                                            Add an extra layer of security to your account by requiring a verification code from your mobile device.
+                                        </p>
+                                        
+                                        {authUser?.twoFactorEnabled ? (
+                                            <button 
+                                                onClick={async () => {
+                                                    if(confirm('Are you sure you want to disable 2FA? This will reduce your account security level.')) {
+                                                        try {
+                                                            await authService.disable2FA();
+                                                            setMessage({ type: 'success', text: '2FA protocol deactivated.' });
+                                                            loadUserData();
+                                                        } catch (err) {
+                                                            setMessage({ type: 'error', text: 'Failed to deactivate 2FA.' });
+                                                        }
+                                                    }
+                                                }}
+                                                className="w-full py-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest border border-red-500/20 transition-all"
+                                            >
+                                                Deactivate 2FA
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                onClick={() => setTwoFactorSetupOpen(true)}
+                                                className="w-full py-4 rounded-2xl bg-accent text-white text-[10px] font-black uppercase tracking-widest hover:bg-accent-hover transition-all shadow-xl shadow-accent/20"
+                                            >
+                                                Initialize 2FA
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Password Card */}
+                                    <div className="p-8 rounded-[32px] bg-white/[0.03] border border-white/[0.06] hover:border-white/10 transition-all">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-text-muted">
+                                                <Fingerprint size={22} />
+                                            </div>
+                                        </div>
+                                        <h4 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Access Credentials</h4>
+                                        <p className="text-xs text-text-secondary font-medium leading-relaxed opacity-60 mb-8">
+                                            Rotate your master password periodically to maintain peak security integrity.
+                                        </p>
+                                        <button className="w-full py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">
+                                            Rotate Password
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab !== 'profile' && activeTab !== 'security' && (
                             <div className="bg-white/[0.02] border border-white/[0.06] rounded-[40px] p-24 text-center shadow-2xl animate-in zoom-in-95 duration-500">
                                 <div className="w-24 h-24 bg-accent/5 rounded-[32px] flex items-center justify-center text-accent mx-auto mb-10 border border-accent/10">
                                     <Shield size={44} className="opacity-30" />
@@ -407,6 +513,67 @@ export default function Settings() {
 
                 <div className="h-10" />
             </div>
+
+            {/* 2FA Setup Modal */}
+            {twoFactorSetupOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setTwoFactorSetupOpen(false)}></div>
+                    <div className="relative bg-dark-900 border border-white/10 w-full max-w-lg rounded-[40px] p-10 shadow-2xl animate-in zoom-in-95 duration-300">
+                        <button 
+                            onClick={() => setTwoFactorSetupOpen(false)}
+                            className="absolute top-8 right-8 text-text-muted hover:text-white transition-colors"
+                        >
+                            <AtSign size={20} className="rotate-45" />
+                        </button>
+
+                        <div className="text-center space-y-6">
+                            <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center text-accent border border-accent/20 mx-auto">
+                                <Smartphone size={32} />
+                            </div>
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tight">Enable 2FA Protection</h3>
+                            <p className="text-text-secondary text-sm font-medium leading-relaxed">
+                                Scan the QR code below with your preferred authenticator app (Google, Authy, or Microsoft).
+                            </p>
+
+                            {setupData ? (
+                                <div className="space-y-8">
+                                    <div className="p-4 bg-white rounded-[24px] inline-block shadow-2xl">
+                                        <img src={setupData.qrCode} alt="2FA QR Code" className="w-48 h-48" />
+                                    </div>
+                                    
+                                    <div className="space-y-4">
+                                        <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Enter 6-Digit Encryption Key</p>
+                                        <input 
+                                            type="text" 
+                                            maxLength="6"
+                                            value={verificationToken}
+                                            onChange={(e) => setVerificationToken(e.target.value.replace(/\D/g, ''))}
+                                            placeholder="000000"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 text-center text-2xl font-mono tracking-[0.5em] text-accent focus:outline-none focus:border-accent transition-all"
+                                        />
+                                        <button 
+                                            onClick={handleVerify2FA}
+                                            disabled={verificationToken.length !== 6 || verifying}
+                                            className="w-full py-5 rounded-2xl bg-accent text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-accent-hover disabled:bg-white/10 disabled:cursor-not-allowed transition-all shadow-xl shadow-accent/20"
+                                        >
+                                            {verifying ? 'Verifying Node...' : 'Establish Secure Link'}
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="p-4 bg-white/5 rounded-xl text-left border border-white/5">
+                                        <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-2 opacity-50">Manual Input Key</p>
+                                        <code className="text-xs text-white font-mono break-all">{setupData.secret}</code>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="py-12">
+                                    <Loader2 className="w-8 h-8 text-accent animate-spin mx-auto" />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 }

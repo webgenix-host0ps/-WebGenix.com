@@ -35,6 +35,35 @@ export default function ServiceDetail() {
     alert('Renewal process initiated. You will be redirected to the invoice soon.');
   };
 
+  const handleCancellation = async () => {
+    if (service.cancellationRequestedAt) {
+      alert('Cancellation has already been requested for this service.');
+      return;
+    }
+
+    const reason = window.prompt('Please enter the reason for cancellation:');
+    if (reason === null) return;
+    if (!reason.trim()) {
+      alert('A reason is required for cancellation.');
+      return;
+    }
+
+    const type = window.confirm('Would you like to cancel immediately? (Cancel for End of Billing Period)') 
+      ? 'immediate' 
+      : 'end_of_billing_period';
+
+    try {
+      await billingService.requestCancellation(id, { type, reason });
+      alert('Cancellation request submitted successfully.');
+      fetchService();
+    } catch (error) {
+      console.error('Failed to request cancellation:', error);
+      alert('Failed to submit cancellation request.');
+    }
+  };
+
+  const isExpiring = service?.nextDueDate && new Date(service.nextDueDate) <= new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000);
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -196,8 +225,16 @@ export default function ServiceDetail() {
                         <button className="w-full text-left px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-black text-white uppercase tracking-widest transition-all">
                             Upgrade/Downgrade Options
                         </button>
-                        <button className="w-full text-left px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-black uppercase tracking-widest transition-all mt-4">
-                            Request Cancellation
+                        <button 
+                          onClick={handleCancellation}
+                          disabled={!!service.cancellationRequestedAt}
+                          className={`w-full text-left px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all mt-4 ${
+                            service.cancellationRequestedAt 
+                            ? 'bg-white/5 text-text-muted cursor-not-allowed' 
+                            : 'bg-red-500/10 hover:bg-red-500/20 text-red-400'
+                          }`}
+                        >
+                            {service.cancellationRequestedAt ? 'Cancellation Pending' : 'Request Cancellation'}
                         </button>
                     </div>
                 </div>

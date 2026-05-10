@@ -228,6 +228,25 @@ export const listAllInvoices = asyncHandler(async (req, res) => {
     });
 });
 
+export const createInvoice = asyncHandler(async (req, res) => {
+    // Admin creates an invoice manually
+    const invoice = await billingService.createManualInvoice(req.body);
+    res.status(201).json({
+        success: true,
+        data: invoice,
+    });
+});
+
+export const updateInvoiceStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const invoice = await billingService.updateInvoiceStatus(id, status);
+    res.json({
+        success: true,
+        data: invoice,
+    });
+});
+
 export const calculateProration = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { newCycle } = req.body;
@@ -335,5 +354,57 @@ export const deletePromoCode = asyncHandler(async (req, res) => {
     res.json({
         success: true,
         message: 'Promo code deleted',
+    });
+});
+
+export const listAllServices = asyncHandler(async (req, res) => {
+    const filters = {
+        userId: req.query.userId,
+        status: req.query.status,
+        productType: req.query.productType,
+    };
+    const pagination = {
+        page: req.query.page,
+        limit: req.query.limit,
+    };
+    
+    const result = await billingService.listAllServices(filters, pagination);
+    res.json({
+        success: true,
+        data: result.services,
+        meta: {
+            total: result.total,
+            page: result.page,
+            pages: result.pages,
+        },
+    });
+});
+
+export const updateServiceStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status, reason } = req.body;
+    const service = await billingService.updateServiceStatus(id, status, reason, req);
+    res.json({
+        success: true,
+        data: service,
+    });
+});
+
+export const processRefund = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const invoice = await billingService.processRefund(id, req.body, req);
+    res.json({
+        success: true,
+        data: invoice,
+    });
+});
+
+export const requestCancellation = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const service = await billingService.requestCancellation(id, req.body, req.userId, req);
+    res.json({
+        success: true,
+        data: service,
+        message: 'Cancellation request submitted successfully',
     });
 });

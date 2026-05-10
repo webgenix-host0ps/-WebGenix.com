@@ -2,15 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
     Calendar, User, Shield, MessageSquare,
-    Clock, FileText, Send, MoreHorizontal, ChevronRight, Activity, Zap
+    Clock, FileText, Send, MoreHorizontal, ChevronRight, Activity, Zap, RefreshCw
 } from 'lucide-react';
-import { getTicket, replyToTicket, changeTicketStatus, closeTicket } from '../services/ticket.service';
+import { 
+    getTicket, replyToTicket, changeTicketStatus, closeTicket, 
+    getDepartments, transferTicket, mergeTickets 
+} from '../services/ticket.service';
 import { useAuth } from '../context/AuthContext.jsx';
 import TicketStatusBadge from '../components/tickets/TicketStatusBadge.jsx';
 import TicketPriorityBadge from '../components/tickets/TicketPriorityBadge.jsx';
 import MessageThread from '../components/tickets/MessageThread.jsx';
 import MessageInput from '../components/tickets/MessageInput.jsx';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
+import toast from 'react-hot-toast';
 
 export default function TicketDetail() {
     const { id } = useParams();
@@ -21,6 +25,8 @@ export default function TicketDetail() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSending, setIsSending] = useState(false);
     const [error, setError] = useState('');
+    const [showTransferModal, setShowTransferModal] = useState(false);
+    const [showMergeModal, setShowMergeModal] = useState(false);
     
     const messagesEndRef = useRef(null);
     const isStaff = user && ['admin', 'support', 'lead'].includes(user.role);
@@ -30,7 +36,7 @@ export default function TicketDetail() {
             setIsLoading(true);
             setError('');
             const response = await getTicket(id);
-            setTicketData(response.data.data);
+            setTicketData(response.data);
         } catch (err) {
             console.error('Failed to fetch ticket:', err);
             setError(err.response?.data?.message || 'Failed to load ticket details.');
@@ -47,10 +53,19 @@ export default function TicketDetail() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [ticketData?.messages]);
 
-    const handleReply = async (message, isInternal) => {
+    const handleReply = async (message, isInternal, attachments = []) => {
         try {
             setIsSending(true);
-            await replyToTicket(id, { message, isInternal });
+            
+            const data = new FormData();
+            data.append('message', message);
+            data.append('isInternal', isInternal);
+            
+            attachments.forEach(file => {
+                data.append('attachments', file);
+            });
+
+            await replyToTicket(id, data);
             await fetchTicketData();
         } catch (err) {
             console.error('Failed to send reply:', err);
@@ -102,6 +117,16 @@ export default function TicketDetail() {
                     <button onClick={() => navigate('/tickets')} className="px-10 py-4 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-red-500 hover:text-white transition-all">
                         Return to Hub
                     </button>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (!ticketData) {
+        return (
+            <DashboardLayout>
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <Activity className="w-10 h-10 text-accent animate-pulse" />
                 </div>
             </DashboardLayout>
         );
@@ -232,7 +257,7 @@ export default function TicketDetail() {
                                 Administrative Overrides
                             </div>
                             <div className="p-8 space-y-4">
-                                {isStaff ? (
+                                 {isStaff ? (
                                     <div className="space-y-4">
                                         <p className="text-[9px] font-black text-text-muted uppercase tracking-widest opacity-40">System Status Adjustment</p>
                                         <div className="relative">
@@ -250,6 +275,21 @@ export default function TicketDetail() {
                                             </select>
                                             <Activity size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                                         </div>
+                                        
+                                        <div className="grid grid-cols-2 gap-4 mt-4">
+                                            <button 
+                                                onClick={() => setShowTransferModal(true)}
+                                                className="py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 text-[9px] font-black text-text-secondary hover:text-white uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <RefreshCw size={14} /> Transfer
+                                            </button>
+                                            <button 
+                                                onClick={() => setShowMergeModal(true)}
+                                                className="py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 text-[9px] font-black text-text-secondary hover:text-white uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Zap size={14} /> Merge
+                                            </button>
+                                        </div>
                                     </div>
                                 ) : (
                                     !ticket.isClosed && (
@@ -264,11 +304,13 @@ export default function TicketDetail() {
                                 <button className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 text-[10px] font-black text-text-secondary hover:text-white uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-3">
                                     <FileText size={16} /> Export Transcript
                                 </button>
-                                <button className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 text-[10px] font-black text-text-secondary hover:text-white uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-3">
-                                    <MoreHorizontal size={16} /> Advanced Metrics
-                                </button>
                             </div>
                         </div>
+
+                        {/* Modals */}
+                        {showTransferModal && <TransferModal ticket={ticket} onClose={() => setShowTransferModal(false)} onTransferred={fetchTicketData} />}
+                        {showMergeModal && <MergeModal ticket={ticket} onClose={() => setShowMergeModal(false)} onMerged={fetchTicketData} />}
+
 
                     </div>
                 </div>
@@ -278,3 +320,113 @@ export default function TicketDetail() {
         </DashboardLayout>
     );
 }
+
+function TransferModal({ ticket, onClose, onTransferred }) {
+    const [departments, setDepartments] = useState([]);
+    const [selectedDept, setSelectedDept] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        const fetchDepts = async () => {
+            const res = await getDepartments();
+            setDepartments(res.data);
+        };
+        fetchDepts();
+    }, []);
+
+    const handleTransfer = async () => {
+        if (!selectedDept) return toast.error('Select a department');
+        try {
+            setIsSubmitting(true);
+            await transferTicket(ticket._id, selectedDept);
+            toast.success('Ticket transferred');
+            onTransferred();
+            onClose();
+        } catch (err) {
+            toast.error('Transfer failed');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="bg-dark-900 border border-white/10 rounded-[32px] p-8 max-w-md w-full relative z-10 shadow-2xl">
+                <h3 className="text-xl font-black text-white uppercase tracking-tight mb-6">Transfer Department</h3>
+                <div className="space-y-4">
+                    <select 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:outline-none focus:border-accent"
+                        value={selectedDept}
+                        onChange={(e) => setSelectedDept(e.target.value)}
+                    >
+                        <option value="">Select Target Sector...</option>
+                        {departments.map(d => (
+                            <option key={d._id} value={d._id}>{d.name}</option>
+                        ))}
+                    </select>
+                    <div className="flex gap-4 pt-4">
+                        <button onClick={onClose} className="flex-1 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest hover:text-white transition-all">Cancel</button>
+                        <button 
+                            onClick={handleTransfer}
+                            disabled={isSubmitting}
+                            className="flex-1 py-4 bg-accent text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-accent/80 transition-all disabled:opacity-50"
+                        >
+                            Confirm Transfer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function MergeModal({ ticket, onClose, onMerged }) {
+    const [sourceId, setSourceId] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleMerge = async () => {
+        if (!sourceId) return toast.error('Enter source ticket ID');
+        try {
+            setIsSubmitting(true);
+            await mergeTickets(ticket._id, [sourceId]);
+            toast.success('Tickets merged');
+            onMerged();
+            onClose();
+        } catch (err) {
+            toast.error('Merge failed. Check ticket ID.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="bg-dark-900 border border-white/10 rounded-[32px] p-8 max-w-md w-full relative z-10 shadow-2xl">
+                <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Merge Ticket</h3>
+                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-6 opacity-60">Source signals will be moved to this node.</p>
+                <div className="space-y-4">
+                    <input 
+                        type="text" 
+                        placeholder="Source Ticket ID (e.g. 64d...)"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:outline-none focus:border-accent"
+                        value={sourceId}
+                        onChange={(e) => setSourceId(e.target.value)}
+                    />
+                    <div className="flex gap-4 pt-4">
+                        <button onClick={onClose} className="flex-1 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest hover:text-white transition-all">Cancel</button>
+                        <button 
+                            onClick={handleMerge}
+                            disabled={isSubmitting}
+                            className="flex-1 py-4 bg-accent text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-accent/80 transition-all disabled:opacity-50"
+                        >
+                            Initiate Merge
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+

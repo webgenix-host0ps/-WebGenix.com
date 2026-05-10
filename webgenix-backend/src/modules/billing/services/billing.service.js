@@ -14,8 +14,16 @@ export const createOrder = async (orderData, req) => {
     let subtotal = 0;
     const orderItems = [];
     
+    // Fix N+1 query: fetch all products at once
+    const productIds = [
+        ...items.map(item => item.productId),
+        ...items.flatMap(item => (item.addons || []).map(a => a.addonId || a._id))
+    ];
+    const productsList = await Product.find({ _id: { $in: productIds } });
+    const productMap = Object.fromEntries(productsList.map(p => [p._id.toString(), p]));
+    
     for (const item of items) {
-        const product = await Product.findById(item.productId);
+        const product = productMap[item.productId.toString()];
         if (!product || product.status !== 'active') {
             throw new ApiError(400, `Product ${item.productId} is not available`);
         }
@@ -47,7 +55,8 @@ export const createOrder = async (orderData, req) => {
         // Add addon prices securely
         if (item.addons?.length > 0) {
             for (const addon of item.addons) {
-                const addonProduct = await Product.findById(addon.addonId || addon._id);
+                const addonIdStr = (addon.addonId || addon._id).toString();
+                const addonProduct = productMap[addonIdStr];
                 if (addonProduct && addonProduct.status === 'active') {
                     const addonPricing = addonProduct.pricing?.find(p => p.cycle === item.cycle && p.isActive) || addonProduct.pricing?.[0];
                     if (addonPricing) {
@@ -244,6 +253,66 @@ export const listAllInvoices = async (filters, pagination) => {
     };
 };
 
+export const createManualInvoice = async (invoiceData) => {
+    const { userId, items, status = INVOICE_STATUS.UNPAID, dueDate, tax = 0, discount = 0, currency = 'INR', type = INVOICE_TYPE.NEW } = invoiceData;
+    
+    let subtotal = 0;
+    const formattedItems = items.map(item => {
+        const itemTotal = item.quantity * item.unitPrice;
+        subtotal += itemTotal;
+        return {
+            ...item,
+            total: itemTotal
+        };
+    });
+    
+    const total = subtotal - discount + tax;
+    
+    const invoice = await Invoice.create({
+        userId,
+        type,
+        status,
+        items: formattedItems,
+        subtotal,
+        discount,
+        tax,
+        total,
+        amountDue: total,
+        dueDate: dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
+        currency,
+        dateIssued: new Date()
+    });
+    
+    return invoice;
+};
+
+export const updateInvoiceStatus = async (invoiceId, status) => {
+    const invoice = await Invoice.findById(invoiceId);
+    if (!invoice) throw new ApiError(404, 'Invoice not found');
+
+    if (status === INVOICE_STATUS.PAID && invoice.status !== INVOICE_STATUS.PAID) {
+        invoice.amountDue = 0;
+        invoice.datePaid = new Date();
+        invoice.amountPaid = invoice.total;
+    } else if (status !== INVOICE_STATUS.PAID) {
+        invoice.amountDue = invoice.total;
+        invoice.datePaid = null;
+        invoice.amountPaid = 0;
+    }
+
+    invoice.status = status;
+    
+    if (!invoice.history) invoice.history = [];
+    invoice.history.push({
+        date: new Date(),
+        action: 'status_changed',
+        description: `Status manually changed to ${status}`,
+    });
+
+    await invoice.save();
+    return invoice;
+};
+
 export const markInvoiceAsPaid = async (invoiceId, paymentData, req) => {
     console.log('[BillingService] markInvoiceAsPaid called:', { invoiceId, paymentMethod: paymentData.paymentMethod });
     
@@ -431,11 +500,8 @@ export const listOrders = async (userId, filters, pagination) => {
 };
 
 export const cancelOrder = async (orderId, userId, reason, req) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    
     try {
-        const order = await Order.findById(orderId).session(session);
+        const order = await Order.findById(orderId);
         if (!order) {
             throw new ApiError(404, 'Order not found');
         }
@@ -457,16 +523,14 @@ export const cancelOrder = async (orderId, userId, reason, req) => {
             userId,
         });
         
-        await order.save({ session });
+        await order.save();
         
         // Cancel associated invoice if exists
         if (order.invoiceId) {
             await Invoice.findByIdAndUpdate(order.invoiceId, {
                 status: INVOICE_STATUS.CANCELLED,
-            }, { session });
+            });
         }
-        
-        await session.commitTransaction();
         
         await logAction({
             userId,
@@ -477,10 +541,7 @@ export const cancelOrder = async (orderId, userId, reason, req) => {
         
         return order;
     } catch (error) {
-        await session.abortTransaction();
         throw error;
-    } finally {
-        session.endSession();
     }
 };
 
@@ -646,4 +707,149 @@ export const suspendOverdueServices = async () => {
     }
     
     return { suspendedCount: services.length };
+};
+
+export const listAllServices = async (filters, pagination) => {
+    let { page = 1, limit = 20 } = pagination;
+    
+    limit = Math.min(parseInt(limit), 100);
+    page = Math.max(parseInt(page), 1);
+    
+    const query = {};
+    
+    if (filters.userId) query.userId = filters.userId;
+    if (filters.status) query.status = filters.status;
+    if (filters.productType) query.productType = filters.productType;
+    
+    const skip = (page - 1) * limit;
+    
+    const [services, total] = await Promise.all([
+        Service.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('userId', 'name email')
+            .populate('productId', 'name'),
+        Service.countDocuments(query),
+    ]);
+    
+    return {
+        services,
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+    };
+};
+
+export const updateServiceStatus = async (serviceId, status, reason, req) => {
+    const service = await Service.findById(serviceId);
+    if (!service) {
+        throw new ApiError(404, 'Service not found');
+    }
+    
+    const oldStatus = service.status;
+    service.status = status;
+    
+    if (!service.history) service.history = [];
+    service.history.push({
+        date: new Date(),
+        action: 'status_changed',
+        description: `Status changed from ${oldStatus} to ${status}. Reason: ${reason || 'Admin action'}`,
+        userId: req?.userId,
+    });
+    
+    await service.save();
+    
+    await logAction({
+        userId: service.userId,
+        action: 'service.status_updated',
+        metadata: { serviceId: service._id, oldStatus, newStatus: status, reason },
+        req,
+    });
+    
+    return service;
+};
+
+export const processRefund = async (invoiceId, refundData, req) => {
+    const { amount, reason, refundToCredit = false } = refundData;
+    const invoice = await Invoice.findById(invoiceId);
+    
+    if (!invoice) {
+        throw new ApiError(404, 'Invoice not found');
+    }
+    
+    if (invoice.status !== INVOICE_STATUS.PAID && invoice.status !== INVOICE_STATUS.PARTIAL) {
+        throw new ApiError(400, 'Only paid or partially paid invoices can be refunded');
+    }
+    
+    const maxRefund = invoice.amountPaid;
+    if (amount > maxRefund) {
+        throw new ApiError(400, `Refund amount exceeds amount paid (Max: ${maxRefund})`);
+    }
+    
+    invoice.status = INVOICE_STATUS.REFUNDED;
+    invoice.refundAmount = amount;
+    invoice.refundedAt = new Date();
+    
+    if (!invoice.history) invoice.history = [];
+    invoice.history.push({
+        date: new Date(),
+        action: 'refunded',
+        description: `Refunded ${amount} via ${refundToCredit ? 'Credit' : 'Original Method'}. Reason: ${reason}`,
+        userId: req?.userId,
+    });
+    
+    if (refundToCredit) {
+        const User = (await import('../../../models/User.js')).default;
+        await User.findByIdAndUpdate(invoice.userId, {
+            $inc: { creditBalance: amount }
+        });
+    }
+    
+    await invoice.save();
+    
+    await logAction({
+        userId: invoice.userId,
+        action: 'invoice.refunded',
+        metadata: { invoiceId: invoice._id, amount, reason, toCredit: refundToCredit },
+        req,
+    });
+    
+    return invoice;
+};
+
+export const requestCancellation = async (serviceId, cancellationData, userId, req) => {
+    const { type, reason } = cancellationData;
+    const service = await Service.findOne({ _id: serviceId, userId });
+    
+    if (!service) {
+        throw new ApiError(404, 'Service not found');
+    }
+    
+    if (['cancelled', 'terminated'].includes(service.status)) {
+        throw new ApiError(400, 'Service is already cancelled or terminated');
+    }
+    
+    service.cancellationRequestedAt = new Date();
+    service.cancellationType = type;
+    service.cancellationReason = reason;
+    
+    if (!service.history) service.history = [];
+    service.history.push({
+        date: new Date(),
+        action: 'cancellation_requested',
+        description: `Cancellation requested (${type}). Reason: ${reason}`,
+        userId,
+    });
+    
+    await service.save();
+    
+    await logAction({
+        userId,
+        action: 'service.cancellation_requested',
+        metadata: { serviceId: service._id, type, reason },
+        req,
+    });
+    
+    return service;
 };

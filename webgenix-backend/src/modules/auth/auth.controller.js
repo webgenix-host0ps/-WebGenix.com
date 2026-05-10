@@ -130,3 +130,30 @@ export const updateProfile = asyncHandler(async (req, res) => {
         data: { user },
     });
 });
+
+export const setup2FA = asyncHandler(async (req, res) => {
+    const { secret, qrCode } = await authService.generate2FASecret(req.user);
+    res.json({
+        success: true,
+        data: { secret, qrCode }
+    });
+});
+
+export const verify2FA = asyncHandler(async (req, res) => {
+    const { token } = req.body;
+    const user = await authService.verifyAndEnable2FA(req.user._id, token);
+    res.json({
+        success: true,
+        message: '2FA enabled successfully',
+        data: { user }
+    });
+});
+
+export const disable2FA = asyncHandler(async (req, res) => {
+    const user = await authService.disable2FA(req.user._id);
+    res.json({
+        success: true,
+        message: '2FA disabled successfully',
+        data: { user }
+    });
+});

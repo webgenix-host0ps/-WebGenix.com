@@ -116,6 +116,12 @@ const invoiceSchema = new Schema({
     taxName: {
         type: String,
     },
+    taxBreakdown: [{
+        name: String,
+        rate: Number,
+        amount: Number,
+    }],
+    pdfPath: String,
     total: {
         type: Number,
         required: true,

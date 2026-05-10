@@ -16,15 +16,10 @@ export const createTicketSchema = z.object({
 export const replyTicketSchema = z.object({
     body: z.object({
         message: z.string().trim().min(1, 'Message is required').max(5000),
-        attachments: z.array(
-            z.object({
-                fileName: z.string().max(255),
-                fileUrl: z.string().url('Invalid attachment URL'),
-                fileType: z.string().max(100),
-                fileSize: z.number().max(25 * 1024 * 1024, 'File too large (max 25MB)'),
-            })
-        ).max(5, 'Maximum 5 attachments allowed').optional(),
-        isInternal: z.boolean().optional(),
+        isInternal: z.union([z.string(), z.boolean()]).optional().transform(val => {
+            if (typeof val === 'boolean') return val;
+            return val === 'true';
+        }),
     }),
 });
 

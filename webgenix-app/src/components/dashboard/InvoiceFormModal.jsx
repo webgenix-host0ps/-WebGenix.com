@@ -43,6 +43,7 @@ export default function InvoiceFormModal({ isOpen, onClose, onSave, initialData 
     e.preventDefault();
     await onSave({
       ...formData,
+      items: formData.items.map(item => ({ ...item, unitPrice: Number(item.amount) })),
       subtotal: calculateSubtotal(),
       total: calculateTotal()
     });

@@ -28,4 +28,9 @@ router.post('/logout-all', authController.logoutAll);
 router.get('/me', authController.getMe);
 router.patch('/profile', authController.updateProfile);
 
+// 2FA Routes
+router.post('/2fa/setup', authController.setup2FA);
+router.post('/2fa/verify', authController.verify2FA);
+router.post('/2fa/disable', authController.disable2FA);
+
 export default router;

@@ -59,6 +59,14 @@ const ticketSchema = new mongoose.Schema(
                 type: String,
             },
         ],
+        linkedServiceId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Service',
+        },
+        linkedDomainId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Domain',
+        },
         isClosed: {
             type: Boolean,
             default: false,

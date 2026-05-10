@@ -10,7 +10,12 @@ import { errorHandler, notFound } from './middlewares/error.middleware.js';
 import { apiLimiter } from './middlewares/rateLimit.middleware.js';
 import logger from './utils/logger.js';
 
+import path from 'path';
+
 const app = express();
+
+// Serve static files
+app.use('/uploads', express.static(path.resolve('uploads')));
 
 // Security middleware
 app.use(helmet({

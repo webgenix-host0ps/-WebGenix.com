@@ -1,7 +1,39 @@
 import User from '../../models/User.js';
+import Ticket from '../tickets/models/Ticket.js';
+import Invoice from '../billing/models/Invoice.js';
+import Service from '../billing/models/Service.js';
+import Order from '../billing/models/Order.js';
+import SystemSetting from './models/SystemSetting.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { ApiResponse } from '../../utils/ApiResponse.js';
+
+
+
+export const getSystemSettings = asyncHandler(async (req, res) => {
+    const settings = await SystemSetting.find().sort({ group: 1, key: 1 });
+    res.status(200).json(new ApiResponse(200, settings, 'System settings retrieved successfully'));
+});
+
+export const updateSystemSettings = asyncHandler(async (req, res) => {
+    const { settings } = req.body; // Array of { key, value }
+    
+    if (!Array.isArray(settings)) {
+        throw new ApiError(400, 'Settings must be an array');
+    }
+
+    const updatedSettings = [];
+    for (const item of settings) {
+        const setting = await SystemSetting.findOneAndUpdate(
+            { key: item.key },
+            { $set: { value: item.value, updatedBy: req.user._id } },
+            { new: true, upsert: true }
+        );
+        updatedSettings.push(setting);
+    }
+
+    res.status(200).json(new ApiResponse(200, updatedSettings, 'System settings updated successfully'));
+});
 
 // Dashboard Stats
 export const getStats = asyncHandler(async (req, res) => {
@@ -9,23 +41,27 @@ export const getStats = asyncHandler(async (req, res) => {
         const now = new Date();
         const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         
-        // Get real user counts
-        const [totalClients, lastMonthClients, activeLeads, lastWeekLeads] = await Promise.all([
+        // Get real user counts and other stats
+        const [totalClients, lastMonthClients, activeLeads, lastWeekLeads, openTickets, unpaidInvoices, activeServices] = await Promise.all([
             User.countDocuments({ role: 'client' }),
             User.countDocuments({ role: 'client', createdAt: { $gte: lastMonth } }),
             User.countDocuments({ role: 'lead' }),
-            User.countDocuments({ role: 'lead', createdAt: { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) } })
+            User.countDocuments({ role: 'lead', createdAt: { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) } }),
+            Ticket.countDocuments({ status: { $in: ['OPEN', 'CLIENT_REPLY', 'IN_PROGRESS'] }, isClosed: false }),
+            Invoice.countDocuments({ status: 'unpaid' }),
+            Service.countDocuments({ status: 'active' })
         ]);
 
         const stats = {
             totalClients,
             clientsTrend: lastMonthClients > 0 ? Math.round((lastMonthClients / totalClients) * 100) : 0,
-            openTickets: 0, // Will be implemented when ticket model is ready
-            ticketsTrend: 0,
-            unpaidInvoices: 0, // Will be implemented when invoice model is ready
-            invoicesTrend: 0,
+            openTickets,
+            ticketsTrend: 0, // Placeholder for trend
+            unpaidInvoices,
+            invoicesTrend: 0, // Placeholder for trend
             leads: activeLeads,
-            leadsTrend: lastWeekLeads > 0 ? Math.round((lastWeekLeads / activeLeads) * 100) : 0
+            leadsTrend: lastWeekLeads > 0 ? Math.round((lastWeekLeads / activeLeads) * 100) : 0,
+            activeServices,
         };
 
         res.status(200).json(new ApiResponse(200, stats, 'Dashboard stats retrieved successfully'));
@@ -102,11 +138,19 @@ export const getUser = asyncHandler(async (req, res) => {
             throw new ApiError(404, 'User not found');
         }
 
+        const [services, invoices, tickets, orders] = await Promise.all([
+            Service.find({ userId: id }).sort({ createdAt: -1 }),
+            Invoice.find({ userId: id }).sort({ dateIssued: -1 }),
+            Ticket.find({ client: id }).sort({ createdAt: -1 }),
+            Order.find({ userId: id }).sort({ createdAt: -1 }),
+        ]);
+
         const userData = {
             client: user,
-            services: [], // Will be populated when service model is ready
-            invoices: [], // Will be populated when invoice model is ready
-            tickets: [] // Will be populated when ticket model is ready
+            services,
+            invoices,
+            tickets,
+            orders,
         };
 
         res.status(200).json(new ApiResponse(200, userData, 'User details retrieved successfully'));
@@ -152,6 +196,37 @@ export const toggleUserStatus = asyncHandler(async (req, res) => {
             userId: id, 
             isActive: user.isActive 
         }, 'User status updated successfully'));
+    } catch (error) {
+        res.status(500).json(new ApiResponse(500, null, error.message));
+    }
+});
+
+export const createUser = asyncHandler(async (req, res) => {
+    try {
+        const { email, password, name, role, phone } = req.body;
+        
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            throw new ApiError(400, 'User with this email already exists');
+        }
+        
+        const user = new User({
+            email,
+            password,
+            name,
+            role: role || 'client',
+            phone,
+            isActive: true,
+            emailVerified: true // Admin created accounts are verified by default
+        });
+        
+        await user.save();
+        
+        // Remove password from response
+        const userObj = user.toObject();
+        delete userObj.password;
+        
+        res.status(201).json(new ApiResponse(201, userObj, 'User created successfully'));
     } catch (error) {
         res.status(500).json(new ApiResponse(500, null, error.message));
     }
@@ -253,7 +328,30 @@ export const deleteLead = asyncHandler(async (req, res) => {
 // Analytics
 export const getRevenueAnalytics = asyncHandler(async (req, res) => {
     try {
-        res.status(200).json(new ApiResponse(200, [], 'Revenue analytics retrieved successfully'));
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        const monthlyRevenue = await Invoice.aggregate([
+            { 
+                $match: { 
+                    status: 'paid', 
+                    datePaid: { $gte: startOfMonth } 
+                } 
+            },
+            { 
+                $group: { 
+                    _id: null, 
+                    total: { $sum: '$total' } 
+                } 
+            }
+        ]);
+
+        const totalRevenue = monthlyRevenue.length > 0 ? monthlyRevenue[0].total : 0;
+
+        res.status(200).json(new ApiResponse(200, {
+            currentMonthTotal: totalRevenue,
+            chartData: [] // TODO: Implement 12-month historical data when needed
+        }, 'Revenue analytics retrieved successfully'));
     } catch (error) {
         res.status(500).json(new ApiResponse(500, null, error.message));
     }
@@ -281,6 +379,22 @@ export const getUserAnalytics = asyncHandler(async (req, res) => {
 export const getServiceAnalytics = asyncHandler(async (req, res) => {
     try {
         res.status(200).json(new ApiResponse(200, [], 'Service analytics retrieved successfully'));
+    } catch (error) {
+        res.status(500).json(new ApiResponse(500, null, error.message));
+    }
+});
+
+export const getLogs = asyncHandler(async (req, res) => {
+    try {
+        const { limit = 10 } = req.query;
+        const AuditLog = (await import('../../models/AuditLog.js')).default;
+        
+        const logs = await AuditLog.find()
+            .populate('userId', 'name email role')
+            .sort({ createdAt: -1 })
+            .limit(parseInt(limit));
+            
+        res.status(200).json(new ApiResponse(200, logs, 'Audit logs retrieved successfully'));
     } catch (error) {
         res.status(500).json(new ApiResponse(500, null, error.message));
     }

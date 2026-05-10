@@ -24,6 +24,15 @@ export const createTicket = async (clientId, ticketData, req) => {
         client: clientId,
     });
 
+    // Create initial message
+    await TicketMessage.create({
+        ticket: ticket._id,
+        sender: clientId,
+        senderRole: ROLES.CLIENT,
+        message: description,
+        attachments: ticketData.attachments || [],
+    });
+
     await TicketActivity.create({
         ticket: ticket._id,
         action: 'CREATED',
@@ -58,7 +67,7 @@ export const addMessage = async (ticketId, senderId, senderRole, messageData, re
     const ticketMessage = await TicketMessage.create({
         ticket: ticketId,
         sender: senderId,
-        senderRole,
+        senderRole: senderRole.toLowerCase(),
         message,
         attachments,
         isInternal: internal,
@@ -340,5 +349,85 @@ export const getTicketWithMessages = async (ticketId, user) => {
         .populate('sender', 'name role')
         .sort({ createdAt: 1 });
 
-    return { ticket, messages };
+    let clientServices = [];
+    let clientInvoices = [];
+    if (user.role !== ROLES.CLIENT && ticket.client && ticket.client._id) {
+        const Service = (await import('../billing/models/Service.js')).default;
+        const Invoice = (await import('../billing/models/Invoice.js')).default;
+        clientServices = await Service.find({ userId: ticket.client._id, status: 'active' }).sort({ createdAt: -1 }).limit(5);
+        clientInvoices = await Invoice.find({ userId: ticket.client._id }).sort({ dateIssued: -1 }).limit(5);
+    }
+
+    return { ticket, messages, clientServices, clientInvoices };
+};
+
+export const mergeTickets = async (primaryTicketId, sourceTicketIds, userId, req) => {
+    const primaryTicket = await Ticket.findById(primaryTicketId);
+    if (!primaryTicket) throw new ApiError(404, 'Primary ticket not found');
+
+    for (const sourceId of sourceTicketIds) {
+        if (sourceId === primaryTicketId) continue;
+        
+        const sourceTicket = await Ticket.findById(sourceId);
+        if (!sourceTicket) continue;
+
+        // Move messages
+        await TicketMessage.updateMany(
+            { ticket: sourceId },
+            { $set: { ticket: primaryTicketId } }
+        );
+
+        // Update activity
+        await TicketActivity.create({
+            ticket: primaryTicketId,
+            action: 'MERGED',
+            performedBy: userId,
+            metadata: { sourceTicketId: sourceId, sourceTicketDisplayId: sourceTicket.ticketId }
+        });
+
+        // Close source ticket
+        sourceTicket.status = TICKET_STATUS.CLOSED;
+        sourceTicket.isClosed = true;
+        sourceTicket.closedAt = new Date();
+        sourceTicket.description += `\n\n[MERGED INTO ${primaryTicket.ticketId}]`;
+        await sourceTicket.save();
+
+        await logAction({
+            userId,
+            action: 'TICKET_MERGED',
+            metadata: { primaryTicketId, sourceTicketId: sourceId },
+            req,
+        });
+    }
+
+    return primaryTicket;
+};
+
+export const transferDepartment = async (ticketId, newDepartmentId, userId, req) => {
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) throw new ApiError(404, 'Ticket not found');
+
+    const department = await Department.findById(newDepartmentId);
+    if (!department) throw new ApiError(404, 'Target department not found');
+
+    const oldDepartmentId = ticket.department;
+    ticket.department = newDepartmentId;
+    await ticket.save();
+
+    await TicketActivity.create({
+        ticket: ticket._id,
+        action: 'DEPARTMENT_TRANSFERRED',
+        performedBy: userId,
+        oldValue: oldDepartmentId,
+        newValue: newDepartmentId,
+    });
+
+    await logAction({
+        userId,
+        action: 'TICKET_DEPARTMENT_TRANSFER',
+        metadata: { ticketId: ticket._id, oldDepartmentId, newDepartmentId },
+        req,
+    });
+
+    return ticket;
 };

@@ -8,7 +8,7 @@ const router = Router();
 
 // All admin routes require authentication and admin role
 router.use(authMiddleware);
-router.use(roleMiddleware([ROLES.ADMIN, ROLES.BILLING]));
+router.use(roleMiddleware(ROLES.ADMIN, ROLES.BILLING));
 
 // Dashboard stats
 router.get('/stats', adminController.getStats);
@@ -16,6 +16,7 @@ router.get('/stats', adminController.getStats);
 // User management
 router.get('/users', adminController.getUsers);
 router.get('/users/:id', adminController.getUser);
+router.post('/users', adminController.createUser);
 router.patch('/users/:id', adminController.updateUser);
 router.post('/users/:id/toggle-status', adminController.toggleUserStatus);
 
@@ -29,5 +30,11 @@ router.delete('/leads/:id', adminController.deleteLead);
 router.get('/analytics/revenue', adminController.getRevenueAnalytics);
 router.get('/analytics/users', adminController.getUserAnalytics);
 router.get('/analytics/services', adminController.getServiceAnalytics);
+
+// System Settings
+router.get('/settings', adminController.getSystemSettings);
+router.patch('/settings', adminController.updateSystemSettings);
+
+router.get('/logs', adminController.getLogs);
 
 export default router;

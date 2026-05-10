@@ -16,7 +16,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Zap,
-  Globe
+  Globe,
+  BookOpen
 } from 'lucide-react';
 
 export default function DashboardSidebar({ isOpen, closeSidebar }) {
@@ -32,6 +33,10 @@ export default function DashboardSidebar({ isOpen, closeSidebar }) {
     { label: 'Clients', path: '/admin/clients', icon: Users },
     { label: 'Tickets', path: '/admin/tickets', icon: Ticket },
     { label: 'Invoices', path: '/admin/invoices', icon: FileText },
+    { label: 'Servers', path: '/admin/servers', icon: Server },
+    { label: 'Domains', path: '/admin/domains', icon: Globe },
+    { label: 'Knowledgebase', path: '/admin/kb', icon: BookOpen },
+    { label: 'Tax Settings', path: '/admin/tax', icon: ShieldCheck },
     { label: 'Services', path: '/admin/services', icon: Briefcase },
     { label: 'Products', path: '/admin/products', icon: Package },
     { label: 'Leads', path: '/admin/leads', icon: Target },
@@ -42,6 +47,7 @@ export default function DashboardSidebar({ isOpen, closeSidebar }) {
     { label: 'Overview', path: '/support', icon: LayoutDashboard },
     { label: 'Tickets Queue', path: '/support/tickets', icon: Ticket },
     { label: 'Clients', path: '/support/clients', icon: Users },
+    { label: 'Knowledgebase', path: '/kb', icon: BookOpen },
   ];
 
   const billingLinks = [
@@ -49,6 +55,7 @@ export default function DashboardSidebar({ isOpen, closeSidebar }) {
     { label: 'Invoices', path: '/billing/invoices', icon: FileText },
     { label: 'Tickets', path: '/billing/tickets', icon: Ticket },
     { label: 'Clients', path: '/billing/clients', icon: Users },
+    { label: 'Knowledgebase', path: '/kb', icon: BookOpen },
   ];
 
   const leadLinks = [
@@ -62,6 +69,7 @@ export default function DashboardSidebar({ isOpen, closeSidebar }) {
     { label: 'My Services', path: '/my-services', icon: Server },
     { label: 'Billing', path: '/invoices', icon: CreditCard },
     { label: 'Support', path: '/tickets', icon: Ticket },
+    { label: 'Knowledgebase', path: '/kb', icon: BookOpen },
     { label: 'Settings', path: '/settings', icon: Settings },
   ];
 

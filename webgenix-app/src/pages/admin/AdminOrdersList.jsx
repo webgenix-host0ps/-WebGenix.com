@@ -110,15 +110,15 @@ export default function AdminOrdersList() {
       renderCell: (r) => (
         <div className="flex gap-2">
           <Link 
-            to={`/invoices/${r.invoiceId?._id || r.invoiceId}`}
+            to={`/admin/orders/${r._id}`}
             className="p-2 hover:bg-dark-600 rounded-lg transition-colors"
-            title="View Invoice"
+            title="View Order"
           >
             <Eye className="w-4 h-4 text-text-muted" />
           </Link>
           {r.invoiceId && (
             <Link 
-              to={`/invoices/${r.invoiceId?._id || r.invoiceId}`}
+              to={`/admin/invoices/${r.invoiceId?._id || r.invoiceId}`}
               className="p-2 hover:bg-dark-600 rounded-lg transition-colors"
               title="View Invoice"
             >

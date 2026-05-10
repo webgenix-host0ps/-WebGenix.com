@@ -1,3 +1,4 @@
+import cron from 'node-cron';
 import Ticket from '../modules/tickets/models/Ticket.js';
 import TicketActivity from '../modules/tickets/models/TicketActivity.js';
 import { processRenewalInvoices, suspendOverdueServices } from '../modules/billing/services/billing.service.js';
@@ -99,21 +100,25 @@ export const updateOverdueInvoices = async () => {
 };
 
 export const initCrons = () => {
-    // Auto-close tickets - every 24 hours
-    setInterval(autoCloseTickets, 24 * 60 * 60 * 1000);
-    setTimeout(autoCloseTickets, 60 * 1000);
+    // Auto-close tickets - daily at midnight
+    cron.schedule('0 0 * * *', autoCloseTickets);
 
     // Billing - check renewals every 6 hours
-    setInterval(processBillingRenewals, 6 * 60 * 60 * 1000);
-    setTimeout(processBillingRenewals, 30 * 1000);
+    cron.schedule('0 */6 * * *', processBillingRenewals);
 
     // Suspend overdue services - every 12 hours
-    setInterval(suspendOverdueServicesCron, 12 * 60 * 60 * 1000);
-    setTimeout(suspendOverdueServicesCron, 60 * 1000);
+    cron.schedule('0 */12 * * *', suspendOverdueServicesCron);
 
-    // Update overdue invoices - every 24 hours
-    setInterval(updateOverdueInvoices, 24 * 60 * 60 * 1000);
-    setTimeout(updateOverdueInvoices, 90 * 1000);
+    // Update overdue invoices - daily at 1 AM
+    cron.schedule('0 1 * * *', updateOverdueInvoices);
 
-    console.log('Cron jobs initialized');
+    console.log('Cron jobs initialized with node-cron');
+
+    // Run initial check after 30 seconds of server startup
+    setTimeout(() => {
+        autoCloseTickets();
+        processBillingRenewals();
+        suspendOverdueServicesCron();
+        updateOverdueInvoices();
+    }, 30 * 1000);
 };

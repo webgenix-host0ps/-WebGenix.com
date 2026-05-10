@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { billingService } from '../../services/billing.service';
 import { getTickets } from '../../services/ticket.service';
+import { authService } from '../../services/auth.service';
 import { 
     Server, Ticket, CreditCard, 
     ChevronRight, Zap, Activity, Shield, RefreshCw,
@@ -18,7 +19,8 @@ export default function ClientDashboard() {
         activeServices: 0,
         pendingInvoices: 0,
         activeTickets: 0,
-        totalSpent: 0
+        totalSpent: 0,
+        creditBalance: 0
     });
     const [recentServices, setRecentServices] = useState([]);
     const [recentTickets, setRecentTickets] = useState([]);
@@ -27,12 +29,14 @@ export default function ClientDashboard() {
     const fetchDashboardData = async () => {
         setLoading(true);
         try {
-            const [servicesRes, ticketsRes, billingRes] = await Promise.all([
+            const [servicesRes, ticketsRes, billingRes, userRes] = await Promise.all([
                 billingService.getMyServices(),
                 getTickets({ limit: 5 }),
-                billingService.getInvoices()
+                billingService.getInvoices(),
+                authService.getCurrentUser()
             ]);
 
+            const currentUser = userRes.data?.user || userRes.data;
             const services = servicesRes.data?.services || servicesRes.data || [];
             const tickets = ticketsRes.data || [];
             const invoices = billingRes.data || [];
@@ -41,7 +45,8 @@ export default function ClientDashboard() {
                 activeServices: services.filter(s => s.status === 'active').length,
                 pendingInvoices: invoices.filter(i => i.status === 'unpaid').length,
                 activeTickets: tickets.filter(t => !['RESOLVED', 'CLOSED'].includes(t.status?.toUpperCase())).length,
-                totalSpent: invoices.reduce((acc, curr) => acc + (curr.status === 'paid' ? curr.total : 0), 0)
+                totalSpent: invoices.reduce((acc, curr) => acc + (curr.status === 'paid' ? curr.total : 0), 0),
+                creditBalance: currentUser?.creditBalance || 0
             });
 
             setRecentServices(services.slice(0, 3));
@@ -61,7 +66,7 @@ export default function ClientDashboard() {
         { label: 'Active Services', value: stats.activeServices, icon: Server, color: 'blue', trend: '+12%' },
         { label: 'Unpaid Invoices', value: stats.pendingInvoices, icon: CreditCard, color: 'amber', trend: 'Attention' },
         { label: 'Open Tickets', value: stats.activeTickets, icon: Ticket, color: 'purple', trend: 'Support' },
-        { label: 'Total Spending', value: `₹${stats.totalSpent.toFixed(0)}`, icon: Zap, color: 'green', trend: 'Account' },
+        { label: 'Credit Balance', value: `₹${(stats.creditBalance || 0).toFixed(2)}`, icon: Activity, color: 'indigo', trend: 'Account' },
     ];
 
     return (

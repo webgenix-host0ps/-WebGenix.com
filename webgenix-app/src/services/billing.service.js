@@ -28,6 +28,11 @@ export const billingService = {
         return response.data;
     },
     
+    requestCancellation: async (id, data) => {
+        const response = await api.post(`/billing/services/${id}/cancel`, data);
+        return response.data;
+    },
+    
     // Admin Services
     getAdminServices: async (params) => {
         const response = await api.get('/billing/admin/services', { params });

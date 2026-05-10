@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Shield, Clock } from 'lucide-react';
+import { User, Shield, Clock, Paperclip, Download } from 'lucide-react';
 
 export default function MessageThread({ messages, currentUser }) {
     if (!messages || messages.length === 0) return null;
@@ -67,6 +67,36 @@ export default function MessageThread({ messages, currentUser }) {
                                 <div className="whitespace-pre-wrap font-medium">
                                     {msg.message}
                                 </div>
+
+                                {msg.attachments && msg.attachments.length > 0 && (
+                                    <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
+                                        {msg.attachments.map((file, fIdx) => {
+                                            const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+                                            return (
+                                                <a 
+                                                    key={fIdx}
+                                                    href={`${baseUrl}${file.fileUrl}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-all group/file"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Paperclip size={12} className="text-accent" />
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-black uppercase tracking-tight text-white/70 group-hover/file:text-white transition-colors truncate max-w-[150px]">
+                                                                {file.fileName}
+                                                            </span>
+                                                            <span className="text-[8px] text-text-muted font-bold uppercase tracking-widest">
+                                                                {(file.fileSize / 1024).toFixed(1)} KB
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <Download size={14} className="text-text-muted group-hover/file:text-accent transition-all transform group-hover:scale-110" />
+                                                </a>
+                                            );
+                                        })}
+                                    </div>
+                                )}
 
                                 {/* Subtle triangle for bubbles */}
                                 {!isInternal && (

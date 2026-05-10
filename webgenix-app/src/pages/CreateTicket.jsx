@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createTicket } from '../services/ticket.service';
-import { ChevronRight, Send, AlertTriangle, Shield, Clock, Activity } from 'lucide-react';
+import { ChevronRight, Send, AlertTriangle, Shield, Clock, Activity, Paperclip, X } from 'lucide-react';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import api from '../services/api';
 
@@ -18,6 +18,7 @@ export default function CreateTicket() {
         departmentId: '',
         priority: 'MEDIUM'
     });
+    const [attachments, setAttachments] = useState([]);
 
     // Fetch departments from API
     useEffect(() => {
@@ -59,6 +60,19 @@ export default function CreateTicket() {
         }));
     };
 
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (attachments.length + files.length > 5) {
+            setError('Maximum 5 attachments allowed protocol.');
+            return;
+        }
+        setAttachments(prev => [...prev, ...files]);
+    };
+
+    const removeAttachment = (index) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -70,7 +84,18 @@ export default function CreateTicket() {
         try {
             setIsLoading(true);
             setError('');
-            const response = await createTicket(formData);
+            
+            const data = new FormData();
+            data.append('subject', formData.subject);
+            data.append('description', formData.description);
+            data.append('departmentId', formData.departmentId);
+            data.append('priority', formData.priority);
+            
+            attachments.forEach(file => {
+                data.append('attachments', file);
+            });
+
+            const response = await createTicket(data);
             const newTicket = response.data;
             if (newTicket?._id) {
                 navigate(`/tickets/${newTicket._id}`);
@@ -177,7 +202,7 @@ export default function CreateTicket() {
                             </div>
 
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-white uppercase tracking-[0.2em] opacity-40">System Log / Description</label>
+                                <label className="text-[10px] font-black text-white uppercase tracking-[0.2em] opacity-40">Signal Details</label>
                                 <textarea 
                                     name="description"
                                     value={formData.description}
@@ -186,6 +211,41 @@ export default function CreateTicket() {
                                     placeholder="Provide detailed logs or steps to reproduce the anomaly..."
                                     required
                                 />
+                            </div>
+
+                            {/* Attachments Area */}
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-white uppercase tracking-[0.2em] opacity-40">Payload Attachments (Max 5)</label>
+                                
+                                <div className="flex flex-wrap gap-3">
+                                    {attachments.map((file, index) => (
+                                        <div key={index} className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 flex items-center gap-3 group animate-in zoom-in duration-300">
+                                            <Paperclip size={12} className="text-accent" />
+                                            <span className="text-[10px] font-bold text-white uppercase tracking-tight truncate max-w-[150px]">{file.name}</span>
+                                            <button 
+                                                type="button"
+                                                onClick={() => removeAttachment(index)}
+                                                className="text-text-muted hover:text-red-400 transition-colors"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    
+                                    {attachments.length < 5 && (
+                                        <label className="bg-accent/10 border border-accent/20 hover:bg-accent/20 rounded-xl px-6 py-2 flex items-center gap-3 cursor-pointer transition-all group">
+                                            <Paperclip size={14} className="text-accent group-hover:scale-110 transition-transform" />
+                                            <span className="text-[10px] font-black text-accent uppercase tracking-widest">Attach File</span>
+                                            <input 
+                                                type="file" 
+                                                className="hidden" 
+                                                onChange={handleFileChange}
+                                                multiple
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+                                <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest opacity-40">Allowed: JPG, PNG, PDF, ZIP, TXT (Max 5MB each)</p>
                             </div>
 
                             <div className="flex flex-col sm:flex-row justify-end gap-4 pt-8 border-t border-white/5">

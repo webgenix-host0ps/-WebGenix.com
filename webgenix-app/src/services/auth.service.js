@@ -117,4 +117,30 @@ export const authService = {
         userCacheTime = null;
         return response.data;
     },
+
+    // 2FA Setup
+    async setup2FA() {
+        const response = await api.post('/auth/2fa/setup');
+        return response.data;
+    },
+
+    // 2FA Verify
+    async verify2FA(token) {
+        const response = await api.post('/auth/2fa/verify', { token });
+        if (response.data?.data?.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        }
+        userCache = null;
+        return response.data;
+    },
+
+    // 2FA Disable
+    async disable2FA() {
+        const response = await api.post('/auth/2fa/disable');
+        if (response.data?.data?.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        }
+        userCache = null;
+        return response.data;
+    },
 };

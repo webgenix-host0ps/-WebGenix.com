@@ -1,4 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { CartProvider } from './context/CartContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -16,17 +18,26 @@ import TicketsList from './pages/TicketsList.jsx';
 import TicketDetail from './pages/TicketDetail.jsx';
 import CreateTicket from './pages/CreateTicket.jsx';
 
-import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import AdminDashboard from './pages/dashboards/AdminDashboard.jsx';
 import AdminTicketList from './pages/admin/AdminTicketList.jsx';
+import AdminOrdersList from './pages/admin/AdminOrdersList.jsx';
+import AdminOrderDetail from './pages/admin/AdminOrderDetail.jsx';
 import AdminInvoiceList from './pages/admin/AdminInvoiceList.jsx';
+import AdminInvoiceDetail from './pages/admin/AdminInvoiceDetail.jsx';
 import AdminLeadManagement from './pages/admin/LeadManagement.jsx';
 import AdminUserManagement from './pages/admin/UserManagement.jsx';
 import AdminClientDetail from './pages/admin/AdminClientDetail.jsx';
+import AdminServicesList from './pages/admin/AdminServicesList.jsx';
 import AdminProductList from './pages/admin/AdminProductList.jsx';
 import AdminProductDetail from './pages/admin/AdminProductDetail.jsx';
-import AdminOrdersList from './pages/admin/AdminOrdersList.jsx';
+import AdminServerManagement from './pages/admin/ServerManagement.jsx';
+import StaffManagement from './pages/admin/StaffManagement.jsx';
+import AdminDomainManagement from './pages/admin/DomainManagement.jsx';
+import AdminKBManagement from './pages/admin/KnowledgebaseManagement.jsx';
+import AdminTaxSettings from './pages/admin/TaxSettings.jsx';
+import AdminSettings from './pages/admin/AdminSettings.jsx';
 
-import SupportDashboard from './pages/support/SupportDashboard.jsx';
+import SupportDashboard from './pages/dashboards/SupportDashboard.jsx';
 import SupportTicketList from './pages/support/SupportTicketList.jsx';
 
 import BillingDashboard from './pages/billing/BillingDashboard.jsx';
@@ -68,15 +79,30 @@ function Layout({ children }) {
   );
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+import Knowledgebase from './pages/Knowledgebase.jsx';
+import KnowledgebaseCategory from './pages/KnowledgebaseCategory.jsx';
+import KnowledgebaseArticle from './pages/KnowledgebaseArticle.jsx';
+
 export default function App() {
   const location = useLocation();
   
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Layout>
-          <Routes location={location} key={location.pathname}>
-            {/* Public routes */}
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <CartProvider>
+          <Layout>
+            <Toaster position="top-right" />
+            <Routes location={location} key={location.pathname}>
+              {/* Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
@@ -117,6 +143,30 @@ export default function App() {
               }
             />
             <Route
+              path="/kb"
+              element={
+                <ProtectedRoute>
+                  <Knowledgebase />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/kb/category/:id"
+              element={
+                <ProtectedRoute>
+                  <KnowledgebaseCategory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/kb/article/:id"
+              element={
+                <ProtectedRoute>
+                  <KnowledgebaseArticle />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/tickets"
               element={
                 <ProtectedRoute>
@@ -139,12 +189,21 @@ export default function App() {
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/tickets" element={<ProtectedRoute allowedRoles={['admin']}><AdminTicketList /></ProtectedRoute>} />
             <Route path="/admin/invoices" element={<ProtectedRoute allowedRoles={['admin']}><AdminInvoiceList /></ProtectedRoute>} />
+            <Route path="/admin/invoices/:id" element={<ProtectedRoute allowedRoles={['admin']}><AdminInvoiceDetail /></ProtectedRoute>} />
             <Route path="/admin/orders" element={<ProtectedRoute allowedRoles={['admin']}><AdminOrdersList /></ProtectedRoute>} />
+            <Route path="/admin/orders/:id" element={<ProtectedRoute allowedRoles={['admin']}><AdminOrderDetail /></ProtectedRoute>} />
             <Route path="/admin/leads" element={<ProtectedRoute allowedRoles={['admin']}><AdminLeadManagement /></ProtectedRoute>} />
             <Route path="/admin/clients" element={<ProtectedRoute allowedRoles={['admin']}><AdminUserManagement /></ProtectedRoute>} />
             <Route path="/admin/clients/:id" element={<ProtectedRoute allowedRoles={['admin']}><AdminClientDetail /></ProtectedRoute>} />
+            <Route path="/admin/staff" element={<ProtectedRoute allowedRoles={['admin']}><StaffManagement /></ProtectedRoute>} />
+            <Route path="/admin/services" element={<ProtectedRoute allowedRoles={['admin']}><AdminServicesList /></ProtectedRoute>} />
             <Route path="/admin/products" element={<ProtectedRoute allowedRoles={['admin']}><AdminProductList /></ProtectedRoute>} />
             <Route path="/admin/products/:id" element={<ProtectedRoute allowedRoles={['admin']}><AdminProductDetail /></ProtectedRoute>} />
+            <Route path="/admin/servers" element={<ProtectedRoute allowedRoles={['admin']}><AdminServerManagement /></ProtectedRoute>} />
+            <Route path="/admin/domains" element={<ProtectedRoute allowedRoles={['admin']}><AdminDomainManagement /></ProtectedRoute>} />
+            <Route path="/admin/kb" element={<ProtectedRoute allowedRoles={['admin']}><AdminKBManagement /></ProtectedRoute>} />
+            <Route path="/admin/tax" element={<ProtectedRoute allowedRoles={['admin']}><AdminTaxSettings /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin']}><AdminSettings /></ProtectedRoute>} />
             
             {/* Support Routes */}
             <Route path="/support" element={<ProtectedRoute allowedRoles={['admin', 'support']}><SupportDashboard /></ProtectedRoute>} />
@@ -162,5 +221,6 @@ export default function App() {
         </Layout>
       </CartProvider>
     </AuthProvider>
+    </QueryClientProvider>
   );
 }

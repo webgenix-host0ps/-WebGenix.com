@@ -333,3 +333,49 @@ export const updateUser = async (userId, updateData) => {
     
     return user.toObject();
 };
+
+export const generate2FASecret = async (user) => {
+    // Mock secret generation since speakeasy is not available
+    const secret = Math.random().toString(36).substring(2, 12).toUpperCase();
+    // In a real app, you'd use speakeasy.generateSecret()
+    
+    // Temporarily store secret in user (unverified)
+    await User.findByIdAndUpdate(user._id, { tempTwoFactorSecret: secret });
+    
+    // Mock QR code URL
+    const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=otpauth://totp/WebGenix:${user.email}?secret=${secret}&issuer=WebGenix`;
+    
+    return { secret, qrCode };
+};
+
+export const verifyAndEnable2FA = async (userId, token) => {
+    const user = await User.findById(userId);
+    if (!user.tempTwoFactorSecret) {
+        throw new ApiError(400, '2FA setup not initiated');
+    }
+    
+    // In a real app, verify token with speakeasy.totp.verify()
+    // For now, we accept any 6-digit numeric token as "valid" for the mock
+    if (!/^\d{6}$/.test(token)) {
+        throw new ApiError(400, 'Invalid 2FA token format');
+    }
+    
+    user.twoFactorSecret = user.tempTwoFactorSecret;
+    user.isTwoFactorEnabled = true;
+    user.tempTwoFactorSecret = undefined;
+    await user.save();
+    
+    return user.toObject();
+};
+
+export const disable2FA = async (userId) => {
+    const user = await User.findByIdAndUpdate(
+        userId,
+        { 
+            $set: { isTwoFactorEnabled: false },
+            $unset: { twoFactorSecret: 1, tempTwoFactorSecret: 1 }
+        },
+        { new: true }
+    );
+    return user.toObject();
+};
