@@ -37,19 +37,33 @@ export const getStats = asyncHandler(async (req, res) => {
 // User Management
 export const getUsers = asyncHandler(async (req, res) => {
     try {
-        const { page = 1, limit = 10, search, role, status } = req.query;
+        const { page = 1, limit = 100, search, role, status } = req.query;
         const skip = (page - 1) * limit;
 
-        // Build query
+        console.log('[AdminController] getUsers called with params:', { page, limit, search, role, status });
+
+        // Build query - by default show ALL users (clients, admin, staff)
         const query = {};
-        if (role) query.role = role;
-        if (status) query.isActive = status === 'active';
+        
+        // Only filter by role if explicitly provided and not 'all'
+        if (role && role !== 'all') {
+            query.role = role;
+        }
+        
+        // Status filter
+        if (status && status !== 'all') {
+            query.isActive = status === 'active';
+        }
+        
+        // Search filter (name or email)
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
                 { email: { $regex: search, $options: 'i' } }
             ];
         }
+
+        console.log('[AdminController] MongoDB query:', JSON.stringify(query));
 
         const [users, total] = await Promise.all([
             User.find(query)
@@ -59,6 +73,8 @@ export const getUsers = asyncHandler(async (req, res) => {
                 .limit(parseInt(limit)),
             User.countDocuments(query)
         ]);
+
+        console.log(`[AdminController] Found ${users.length} users out of ${total} total`);
 
         const totalPages = Math.ceil(total / limit);
 
@@ -72,6 +88,7 @@ export const getUsers = asyncHandler(async (req, res) => {
             }
         }, 'Users retrieved successfully'));
     } catch (error) {
+        console.error('[AdminController] Error in getUsers:', error);
         res.status(500).json(new ApiResponse(500, null, error.message));
     }
 });
