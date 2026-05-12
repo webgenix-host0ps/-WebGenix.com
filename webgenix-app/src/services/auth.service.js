@@ -134,6 +134,17 @@ export const authService = {
         return response.data;
     },
 
+    // Active Sessions
+    async getSessions() {
+        const response = await api.get('/auth/sessions');
+        return response.data;
+    },
+
+    async revokeSession(id) {
+        const response = await api.delete(`/auth/sessions/${id}`);
+        return response.data;
+    },
+
     // 2FA Disable
     async disable2FA() {
         const response = await api.post('/auth/2fa/disable');

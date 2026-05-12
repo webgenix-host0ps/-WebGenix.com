@@ -22,15 +22,24 @@ export const register = asyncHandler(async (req, res) => {
 });
 
 export const login = asyncHandler(async (req, res) => {
-    const { user, accessToken, refreshToken } = await authService.loginUser(req.body, req);
+    const result = await authService.loginUser(req.body, req);
+
+    if (result.requiresTwoFactor) {
+        return res.json({
+            success: true,
+            requiresTwoFactor: true,
+            message: '2FA token required',
+            data: { tempToken: result.tempToken },
+        });
+    }
 
     // Set refresh token in cookie
-    res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions);
+    res.cookie('refreshToken', result.refreshToken, refreshTokenCookieOptions);
 
     res.json({
         success: true,
         message: 'Login successful',
-        data: { user, accessToken },
+        data: { user: result.user, accessToken: result.accessToken },
     });
 });
 
@@ -131,6 +140,23 @@ export const updateProfile = asyncHandler(async (req, res) => {
     });
 });
 
+export const getSessions = asyncHandler(async (req, res) => {
+    const sessions = await authService.getUserSessions(req.user._id);
+    res.json({
+        success: true,
+        data: sessions
+    });
+});
+
+export const revokeSession = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    await authService.revokeSession(id, req.user._id);
+    res.json({
+        success: true,
+        message: 'Session revoked successfully'
+    });
+});
+
 export const setup2FA = asyncHandler(async (req, res) => {
     const { secret, qrCode } = await authService.generate2FASecret(req.user);
     res.json({
@@ -150,10 +176,24 @@ export const verify2FA = asyncHandler(async (req, res) => {
 });
 
 export const disable2FA = asyncHandler(async (req, res) => {
-    const user = await authService.disable2FA(req.user._id);
+    const { token } = req.body;
+    const user = await authService.disable2FA(req.user._id, token);
     res.json({
         success: true,
         message: '2FA disabled successfully',
         data: { user }
+    });
+});
+
+export const verify2FALogin = asyncHandler(async (req, res) => {
+    const { tempToken, token } = req.body;
+    const result = await authService.verify2FALogin(tempToken, token, req);
+
+    res.cookie('refreshToken', result.refreshToken, refreshTokenCookieOptions);
+
+    res.json({
+        success: true,
+        message: '2FA verification successful',
+        data: { user: result.user, accessToken: result.accessToken },
     });
 });

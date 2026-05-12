@@ -12,7 +12,13 @@ export default function LeadDashboard() {
     const fetchStats = async () => {
       try {
         const response = await leadService.getStats();
-        setStats(response.data);
+        const data = response.data;
+        setStats({
+          totalLeads: data?.leads ?? 0,
+          newLeads: data?.leadsTrend ?? 0,
+          contacted: data?.clientsTrend ?? 0,
+          conversionRate: data?.clientsTrend ? data.clientsTrend + '%' : '0%'
+        });
       } catch (error) {
         console.error(error);
       } finally {
@@ -37,10 +43,10 @@ export default function LeadDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up-webgenix">
-          <StatCard title="Total Leads" value={stats?.totalLeads} icon={Users} color="accent" />
-          <StatCard title="New Leads" value={stats?.newLeads} icon={UserPlus} color="success" />
-          <StatCard title="Contacted" value={stats?.contacted} icon={Target} color="warning" />
-          <StatCard title="Conversion Rate" value={stats?.conversionRate} icon={TrendingUp} color="success" />
+          <StatCard title="Total Leads" value={stats?.totalLeads ?? 0} icon={Users} color="accent" />
+          <StatCard title="New Leads (Month)" value={stats?.newLeads ?? 0} icon={UserPlus} color="success" />
+          <StatCard title="Leads Trend" value={stats?.contacted ?? 0} icon={Target} color="warning" />
+          <StatCard title="Conversion Rate" value={stats?.conversionRate ?? '0%'} icon={TrendingUp} color="success" />
         </div>
       )}
     </DashboardLayout>

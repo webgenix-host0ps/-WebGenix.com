@@ -6,6 +6,9 @@ import { ROLES } from '../../constants/tickets.js';
 
 const router = Router();
 
+// Tax calculation - available to all authenticated users
+router.get('/calculate', authMiddleware, taxController.calculateTax);
+
 // All tax routes require admin or billing role
 router.use(authMiddleware);
 router.use(roleMiddleware([ROLES.ADMIN, ROLES.BILLING]));

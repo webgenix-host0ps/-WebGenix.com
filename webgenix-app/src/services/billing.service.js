@@ -1,6 +1,17 @@
 import api from './api';
 
 export const billingService = {
+    // Dashboard Stats
+    getStats: async () => {
+        const response = await api.get('/billing/stats');
+        return response.data;
+    },
+
+    // Credit Balance
+    getCredits: async () => {
+        const response = await api.get('/billing/credits');
+        return response.data;
+    },
     // Products
     getProducts: async (params) => {
         const response = await api.get('/billing/products', { params });

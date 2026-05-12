@@ -320,5 +320,4 @@ export const ROLE_DEFAULT_PERMISSIONS = {
 
 // 3. Admin UI: POST /admin/staff/:id/permissions to override
 ```
-
 ---

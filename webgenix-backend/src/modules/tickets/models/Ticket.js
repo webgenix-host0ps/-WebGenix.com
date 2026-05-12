@@ -92,8 +92,11 @@ const ticketSchema = new mongoose.Schema(
     }
 );
 
-// Compound index for list performance
+// Compound indexes for list performance
 ticketSchema.index({ status: 1, updatedAt: -1 });
+ticketSchema.index({ client: 1, status: 1, createdAt: -1 });
+ticketSchema.index({ assignedTo: 1, status: 1, updatedAt: -1 });
+ticketSchema.index({ priority: 1, status: 1 });
 
 // Pre-save hook to auto-generate ticketId in format TCK-YYYY-XXXX atomically
 ticketSchema.pre('save', async function (next) {

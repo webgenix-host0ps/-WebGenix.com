@@ -78,9 +78,11 @@ export const addMessage = async (ticketId, senderId, senderRole, messageData, re
     ticket.lastReplyBy = isStaff ? 'STAFF' : 'CLIENT';
     ticket.lastReplyAt = new Date();
 
-    if (isStaff && ticket.status === TICKET_STATUS.OPEN) {
-        ticket.status = TICKET_STATUS.ANSWERED;
-    } else if (!isStaff && ticket.status !== TICKET_STATUS.OPEN) {
+    if (isStaff) {
+        if (ticket.status === TICKET_STATUS.OPEN || ticket.status === TICKET_STATUS.CLIENT_REPLY) {
+            ticket.status = TICKET_STATUS.ANSWERED;
+        }
+    } else if (ticket.status !== TICKET_STATUS.OPEN) {
         ticket.status = TICKET_STATUS.CLIENT_REPLY;
     }
 
@@ -314,7 +316,10 @@ export const listTickets = async (filters, pagination, user) => {
 };
 
 export const getTicketById = async (ticketId) => {
-    const ticket = await Ticket.findById(ticketId);
+    let ticket = await Ticket.findById(ticketId);
+    if (!ticket && typeof ticketId === 'string') {
+        ticket = await Ticket.findOne({ ticketId });
+    }
     if (!ticket) throw new ApiError(404, 'Ticket not found');
     return ticket;
 };

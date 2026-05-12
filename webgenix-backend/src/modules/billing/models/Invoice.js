@@ -214,6 +214,7 @@ invoiceSchema.index({ userId: 1, status: 1 });
 invoiceSchema.index({ userId: 1, dateIssued: -1 });
 invoiceSchema.index({ status: 1, dueDate: 1 });
 invoiceSchema.index({ orderId: 1 });
+invoiceSchema.index({ dueDate: 1, status: 1, amountDue: 1 });
 
 // Pre-save to generate invoice number
 invoiceSchema.pre('save', async function(next) {

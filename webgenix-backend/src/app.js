@@ -6,6 +6,7 @@ import mongoSanitize from 'express-mongo-sanitize';
 import { env } from './config/env.js';
 import routes from './routes/index.js';
 import razorpayWebhookRoutes from './modules/payments/razorpay.webhook.js';
+import { sanitizeInput } from './middlewares/sanitize.middleware.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 import { apiLimiter } from './middlewares/rateLimit.middleware.js';
 import logger from './utils/logger.js';
@@ -54,6 +55,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 app.use(mongoSanitize()); // Prevent NoSQL injection
+app.use(sanitizeInput); // XSS sanitization
 
 // Request logging
 app.use((req, res, next) => {

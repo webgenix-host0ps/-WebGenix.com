@@ -4,6 +4,18 @@ import { env } from './config/env.js';
 import logger from './utils/logger.js';
 import { initCrons } from './services/cron.service.js';
 
+// Prevent crash on EPIPE (broken pipe) when client disconnects
+process.on('uncaughtException', (err) => {
+    if (err.code === 'EPIPE') return;
+    logger.error('Uncaught exception:', err);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+    if (reason?.code === 'EPIPE') return;
+    logger.error('Unhandled rejection:', reason);
+});
+
 const startServer = async () => {
     try {
         await connectDB();

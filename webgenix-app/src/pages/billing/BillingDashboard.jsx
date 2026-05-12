@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import StatCard from '../../components/dashboard/StatCard';
 import { billingService } from '../../services/billing.service';
-import { DollarSign, FileText, AlertTriangle, TrendingUp } from 'lucide-react';
+import { DollarSign, FileText, AlertTriangle, TrendingUp, Activity } from 'lucide-react';
 
 export default function BillingDashboard() {
   const [stats, setStats] = useState(null);
@@ -22,6 +22,11 @@ export default function BillingDashboard() {
     fetchStats();
   }, []);
 
+  const formatCurrency = (val) => {
+    if (val === undefined || val === null) return '₹0';
+    return '₹' + Number(val).toLocaleString('en-IN');
+  };
+
   return (
     <DashboardLayout>
       <div className="mb-8 animate-fade-in-webgenix">
@@ -37,10 +42,10 @@ export default function BillingDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up-webgenix">
-          <StatCard title="Monthly Revenue" value={`$${stats?.monthlyRevenue?.toLocaleString()}`} icon={TrendingUp} color="success" />
-          <StatCard title="Outstanding Balance" value={`$${stats?.outstandingBalance?.toLocaleString()}`} icon={DollarSign} color="warning" />
-          <StatCard title="Overdue Invoices" value={stats?.overdueInvoices} icon={AlertTriangle} color="error" />
-          <StatCard title="Paid Today" value={stats?.paidToday} icon={FileText} color="accent" />
+          <StatCard title="Monthly Revenue" value={formatCurrency(stats?.monthlyRevenue)} icon={TrendingUp} color="success" />
+          <StatCard title="Outstanding Balance" value={formatCurrency(stats?.outstandingBalance)} icon={DollarSign} color="warning" />
+          <StatCard title="Overdue Invoices" value={stats?.overdueInvoices ?? 0} icon={AlertTriangle} color="error" />
+          <StatCard title="Paid Today" value={stats?.paidToday ?? 0} icon={FileText} color="accent" />
         </div>
       )}
     </DashboardLayout>

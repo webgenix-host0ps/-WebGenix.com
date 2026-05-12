@@ -16,9 +16,8 @@ export default function KnowledgebaseArticle() {
   const fetchArticle = async () => {
     setLoading(true);
     try {
-      const response = await kbService.getArticles();
-      const art = response.data.find(a => a._id === id || a.slug === id);
-      setArticle(art);
+      const response = await kbService.getArticle(id);
+      setArticle(response.data);
     } catch (error) {
       console.error('Failed to fetch article:', error);
     } finally {

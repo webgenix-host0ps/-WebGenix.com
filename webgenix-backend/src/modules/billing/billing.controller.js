@@ -4,6 +4,7 @@ import * as billingService from './services/billing.service.js';
 import PromoCode from './models/PromoCode.js';
 import Service from './models/Service.js';
 import { ApiError } from '../../utils/ApiError.js';
+import { generateInvoicePDF } from '../../services/invoice-pdf.service.js';
 
 // ============ PRODUCT CONTROLLERS ============
 
@@ -177,6 +178,18 @@ export const getInvoice = asyncHandler(async (req, res) => {
         success: true,
         data: invoice,
     });
+});
+
+export const downloadInvoice = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const pdfBuffer = await generateInvoicePDF(id, req.userId);
+
+    res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="invoice-${id}.pdf"`,
+        'Content-Length': pdfBuffer.length,
+    });
+    res.send(pdfBuffer);
 });
 
 export const listInvoices = asyncHandler(async (req, res) => {
@@ -406,5 +419,64 @@ export const requestCancellation = asyncHandler(async (req, res) => {
         success: true,
         data: service,
         message: 'Cancellation request submitted successfully',
+    });
+});
+
+export const getBillingStats = asyncHandler(async (req, res) => {
+    const userId = req.userId;
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const [
+        monthlyRevenue,
+        totalUnpaid,
+        overdueCount,
+        paidTodayCount,
+        activeServices,
+        totalInvoices
+    ] = await Promise.all([
+        Invoice.aggregate([
+            { $match: { status: 'paid', datePaid: { $gte: startOfMonth } } },
+            { $group: { _id: null, total: { $sum: '$total' } } }
+        ]),
+        Invoice.countDocuments({ status: 'unpaid' }),
+        Invoice.countDocuments({ status: 'unpaid', dueDate: { $lt: now } }),
+        Invoice.countDocuments({ status: 'paid', datePaid: { $gte: startOfToday } }),
+        Service.countDocuments({ status: 'active' }),
+        Invoice.countDocuments()
+    ]);
+
+    res.json({
+        success: true,
+        data: {
+            monthlyRevenue: monthlyRevenue[0]?.total || 0,
+            outstandingBalance: totalUnpaid > 0 ? totalUnpaid : 0,
+            overdueInvoices: overdueCount,
+            paidToday: paidTodayCount,
+            activeServices,
+            totalInvoices
+        }
+    });
+});
+
+export const getCredits = asyncHandler(async (req, res) => {
+    const { CreditBalance, CreditTransaction } = await import('./models/Credit.js');
+    const userId = req.userId;
+
+    const [balance, recentTransactions] = await Promise.all([
+        CreditBalance.findOne({ userId }),
+        CreditTransaction.find({ userId })
+            .sort({ createdAt: -1 })
+            .limit(10)
+    ]);
+
+    res.json({
+        success: true,
+        data: {
+            balance: balance?.balance || 0,
+            pendingBalance: balance?.pendingBalance || 0,
+            transactions: recentTransactions || []
+        }
     });
 });

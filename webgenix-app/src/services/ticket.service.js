@@ -20,11 +20,7 @@ export const getTicket = async (ticketId) => {
 };
 
 export const replyToTicket = async (ticketId, messageData) => {
-    const response = await api.post(`/tickets/${ticketId}/messages`, messageData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    });
+    const response = await api.post(`/tickets/${ticketId}/messages`, messageData);
     return response.data;
 };
 

@@ -6,7 +6,7 @@ import {
     User, Building2, MapPin, Save, Loader2, Check,
     Shield, CreditCard, Bell, 
     ChevronRight, Globe, Fingerprint, AtSign, Smartphone, Camera,
-    AlertTriangle, AlertCircle
+    AlertTriangle, AlertCircle, Monitor, Clock, XCircle
 } from 'lucide-react';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 
@@ -35,6 +35,41 @@ export default function Settings() {
     const [setupData, setSetupData] = useState(null);
     const [verificationToken, setVerificationToken] = useState('');
     const [verifying, setVerifying] = useState(false);
+
+    const [sessions, setSessions] = useState([]);
+    const [sessionsLoading, setSessionsLoading] = useState(false);
+
+    useEffect(() => {
+        if (activeTab === 'security') {
+            loadSessions();
+        }
+    }, [activeTab]);
+
+    const loadSessions = async () => {
+        setSessionsLoading(true);
+        try {
+            const res = await authService.getSessions();
+            setSessions(res.data || []);
+        } catch (err) {
+            console.error('Failed to load sessions:', err);
+        } finally {
+            setSessionsLoading(false);
+        }
+    };
+
+    const handleRevokeSession = async (sessionId) => {
+        try {
+            await authService.revokeSession(sessionId);
+            setSessions(prev => prev.filter(s => s._id !== sessionId));
+        } catch (err) {
+            console.error('Failed to revoke session:', err);
+        }
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return 'N/A';
+        return new Date(dateStr).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
 
     useEffect(() => {
         if (twoFactorSetupOpen && !setupData) {
@@ -493,6 +528,45 @@ export default function Settings() {
                                 </div>
                             </div>
                         )}
+
+                        {/* Active Sessions */}
+                        <div className="pt-8 border-t border-white/5">
+                            <div className="flex items-center gap-4 mb-8">
+                                <Monitor size={20} className="text-text-muted" />
+                                <h3 className="text-lg font-black text-white uppercase tracking-tight">Active Sessions</h3>
+                                {sessionsLoading && <Loader2 className="w-4 h-4 animate-spin text-accent" />}
+                            </div>
+                            <div className="space-y-3">
+                                {sessions.length === 0 && !sessionsLoading ? (
+                                    <div className="p-6 rounded-[24px] bg-white/[0.02] border border-dashed border-white/10 text-center">
+                                        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">No active sessions found</p>
+                                    </div>
+                                ) : (
+                                    sessions.map((session) => (
+                                        <div key={session._id} className="flex items-center justify-between p-5 rounded-[24px] bg-white/[0.02] border border-white/[0.06] hover:border-white/10 transition-all group">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-text-muted">
+                                                    <Monitor size={18} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-white">{session.device?.userAgent?.substring(0, 50) || 'Unknown Device'}</p>
+                                                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest opacity-60">
+                                                        IP: {session.device?.ip || 'N/A'} · Last active: {formatDate(session.lastUsedAt)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleRevokeSession(session._id)}
+                                                className="p-2 rounded-xl hover:bg-red-500/10 text-text-muted hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"
+                                                title="Revoke session"
+                                            >
+                                                <XCircle size={16} />
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
 
                         {activeTab !== 'profile' && activeTab !== 'security' && (
                             <div className="bg-white/[0.02] border border-white/[0.06] rounded-[40px] p-24 text-center shadow-2xl animate-in zoom-in-95 duration-500">

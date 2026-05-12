@@ -98,10 +98,10 @@ export default function AdminTicketList() {
               // Fetch full ticket details including messages and context
               const response = await adminService.getTicket(row._id);
               setSelectedTicket({ 
-                ...response.data.data.ticket, 
-                messages: response.data.data.messages,
-                clientServices: response.data.data.clientServices,
-                clientInvoices: response.data.data.clientInvoices
+                ...response.data.ticket, 
+                messages: response.data.messages,
+                clientServices: response.data.clientServices,
+                clientInvoices: response.data.clientInvoices
               });
             } catch (err) {
               console.error('Error fetching ticket details', err);

@@ -378,7 +378,22 @@ export const getUserAnalytics = asyncHandler(async (req, res) => {
 
 export const getServiceAnalytics = asyncHandler(async (req, res) => {
     try {
-        res.status(200).json(new ApiResponse(200, [], 'Service analytics retrieved successfully'));
+        const [activeCount, suspendedCount, cancelledCount, byType] = await Promise.all([
+            Service.countDocuments({ status: 'active' }),
+            Service.countDocuments({ status: 'suspended' }),
+            Service.countDocuments({ status: 'cancelled' }),
+            Service.aggregate([
+                { $group: { _id: '$productType', count: { $sum: 1 } } }
+            ])
+        ]);
+
+        res.status(200).json(new ApiResponse(200, {
+            total: activeCount + suspendedCount + cancelledCount,
+            active: activeCount,
+            suspended: suspendedCount,
+            cancelled: cancelledCount,
+            byType
+        }, 'Service analytics retrieved successfully'));
     } catch (error) {
         res.status(500).json(new ApiResponse(500, null, error.message));
     }

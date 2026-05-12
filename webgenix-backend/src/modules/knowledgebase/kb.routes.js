@@ -9,6 +9,8 @@ const router = Router();
 // Public routes (clients can view articles)
 router.get('/categories', kbController.getCategories);
 router.get('/articles', kbController.getArticles);
+router.get('/articles/search', kbController.searchArticles);
+router.get('/articles/:id', kbController.getArticle);
 
 // Admin routes (requires admin or support role)
 router.post('/categories', authMiddleware, roleMiddleware([ROLES.ADMIN, ROLES.SUPPORT]), kbController.createCategory);

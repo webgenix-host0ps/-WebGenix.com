@@ -56,12 +56,19 @@ router.get('/invoices', billingController.listInvoices);
 
 // Get single invoice
 router.get('/invoices/:id', billingController.getInvoice);
+router.get('/invoices/:id/download', billingController.downloadInvoice);
 
 // Validate promo code
 router.post('/promocode/validate', billingController.validatePromoCode);
 
 // ============ SERVICES (User's active services) ============
 router.get('/services', billingController.getUserServices);
+
+// Billing dashboard stats
+router.get('/stats', billingController.getBillingStats);
+
+// Credit balance
+router.get('/credits', billingController.getCredits);
 
 // ============ ADMIN ONLY ROUTES ============
 

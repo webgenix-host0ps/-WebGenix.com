@@ -78,7 +78,7 @@ export default function SupportTicketList() {
           onClick={async () => {
             try {
               const response = await supportService.getTicket(r._id);
-              setSelectedTicket({ ...response.data.data.ticket, messages: response.data.data.messages });
+              setSelectedTicket({ ...response.data.ticket, messages: response.data.messages });
             } catch (err) {
               console.error(err);
               setSelectedTicket(r);

@@ -1,0 +1,52 @@
+(node:20100) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:20100) [MONGOOSE] Warning: Duplicate schema index on {"expiresAt":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:20100) [MONGOOSE] Warning: Duplicate schema index on {"expiresAt":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+2026-05-12T17:20:36.127Z [ERROR] [403] Please verify your email before logging in {
+  stack: 'Error: Please verify your email before logging in\n' +
+    '    at Module.loginUser (file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/modules/auth/auth.service.js:61:15)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at async file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/modules/auth/auth.controller.js:25:20',
+  path: '/api/auth/login',
+  method: 'POST'
+}
+2026-05-12T17:20:52.961Z [ERROR] [403] Please verify your email before logging in {
+  stack: 'Error: Please verify your email before logging in\n' +
+    '    at Module.loginUser (file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/modules/auth/auth.service.js:61:15)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at async file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/modules/auth/auth.controller.js:25:20',
+  path: '/api/auth/login',
+  method: 'POST'
+}
+[AuthMiddleware] 401: Access token required or invalid format
+2026-05-12T17:20:58.298Z [ERROR] [401] Access token required {
+  stack: 'Error: Access token required\n' +
+    '    at file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/middlewares/auth.middleware.js:13:15\n' +
+    '    at file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/utils/asyncHandler.js:2:21\n' +
+    '    at Layer.handle [as handle_request] (C:\\Users\\Anurag\\Music\\WebGenix\\webgenix-backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n' +
+    '    at trim_prefix (C:\\Users\\Anurag\\Music\\WebGenix\\webgenix-backend\\node_modules\\express\\lib\\router\\index.js:328:13)\n' +
+    '    at C:\\Users\\Anurag\\Music\\WebGenix\\webgenix-backend\\node_modules\\express\\lib\\router\\index.js:286:9\n' +
+    '    at router.process_params (C:\\Users\\Anurag\\Music\\WebGenix\\webgenix-backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n' +
+    '    at next (C:\\Users\\Anurag\\Music\\WebGenix\\webgenix-backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n' +
+    '    at router.handle (C:\\Users\\Anurag\\Music\\WebGenix\\webgenix-backend\\node_modules\\express\\lib\\router\\index.js:175:3)\n' +
+    '    at router (C:\\Users\\Anurag\\Music\\WebGenix\\webgenix-backend\\node_modules\\express\\lib\\router\\index.js:47:12)\n' +
+    '    at Layer.handle [as handle_request] (C:\\Users\\Anurag\\Music\\WebGenix\\webgenix-backend\\node_modules\\express\\lib\\router\\layer.js:95:5)',
+  path: '/api/auth/routes',
+  method: 'GET'
+}
+2026-05-12T17:21:07.167Z [ERROR] [403] Please verify your email before logging in {
+  stack: 'Error: Please verify your email before logging in\n' +
+    '    at Module.loginUser (file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/modules/auth/auth.service.js:61:15)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at async file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/modules/auth/auth.controller.js:25:20',
+  path: '/api/auth/login',
+  method: 'POST'
+}
+2026-05-12T17:21:39.308Z [ERROR] [400] Invalid 2FA token {
+  stack: 'Error: Invalid 2FA token\n' +
+    '    at Module.verifyAndEnable2FA (file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/modules/auth/auth.service.js:415:15)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at async file:///C:/Users/Anurag/Music/WebGenix/webgenix-backend/src/modules/auth/auth.controller.js:170:18',
+  path: '/api/auth/2fa/verify',
+  method: 'POST'
+}

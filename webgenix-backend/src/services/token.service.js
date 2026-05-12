@@ -2,9 +2,9 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { ApiError } from '../utils/ApiError.js';
 
-export const generateAccessToken = (payload) => {
+export const generateAccessToken = (payload, expiresIn) => {
     return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-        expiresIn: env.JWT_ACCESS_EXPIRY,
+        expiresIn: expiresIn || env.JWT_ACCESS_EXPIRY,
     });
 };
 

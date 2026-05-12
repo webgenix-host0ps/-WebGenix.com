@@ -34,9 +34,35 @@ export const createArticle = asyncHandler(async (req, res) => {
     res.status(201).json(new ApiResponse(201, article, 'KB article created successfully'));
 });
 
+export const getArticle = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const article = await KnowledgebaseArticle.findById(id).populate('categoryId', 'name');
+    if (!article) throw new ApiError(404, 'Article not found');
+
+    article.viewCount = (article.viewCount || 0) + 1;
+    await article.save();
+
+    res.status(200).json(new ApiResponse(200, article, 'KB article retrieved successfully'));
+});
+
 export const updateArticle = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const article = await KnowledgebaseArticle.findByIdAndUpdate(id, req.body, { new: true });
     if (!article) throw new ApiError(404, 'Article not found');
     res.status(200).json(new ApiResponse(200, article, 'KB article updated successfully'));
+});
+
+export const searchArticles = asyncHandler(async (req, res) => {
+    const { q } = req.query;
+    if (!q) {
+        return res.status(200).json(new ApiResponse(200, [], 'No search query provided'));
+    }
+    const articles = await KnowledgebaseArticle.find({
+        $or: [
+            { title: { $regex: q, $options: 'i' } },
+            { content: { $regex: q, $options: 'i' } },
+        ],
+        status: 'published'
+    }).populate('categoryId', 'name').sort({ viewCount: -1 }).limit(20);
+    res.status(200).json(new ApiResponse(200, articles, 'KB search results'));
 });

@@ -54,22 +54,23 @@ export default function TicketDetail() {
     }, [ticketData?.messages]);
 
     const handleReply = async (message, isInternal, attachments = []) => {
-        try {
-            setIsSending(true);
-            
-            const data = new FormData();
-            data.append('message', message);
-            data.append('isInternal', isInternal);
-            
-            attachments.forEach(file => {
-                data.append('attachments', file);
-            });
+        setIsSending(true);
+        
+        const data = new FormData();
+        data.append('message', message);
+        data.append('isInternal', isInternal);
+        
+        attachments.forEach(file => {
+            data.append('attachments', file);
+        });
 
+        try {
             await replyToTicket(id, data);
             await fetchTicketData();
         } catch (err) {
             console.error('Failed to send reply:', err);
-            setError('Failed to send reply. Please try again.');
+            const msg = err.response?.data?.message || 'Failed to send reply. Please try again.';
+            setError(msg);
         } finally {
             setIsSending(false);
         }
@@ -138,6 +139,16 @@ export default function TicketDetail() {
         <DashboardLayout>
             <div className="space-y-[32px] animate-in fade-in duration-700">
                 
+                {/* Error Banner */}
+                {error && (
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-2xl px-6 py-4 flex items-center justify-between">
+                        <p className="text-red-300 text-sm font-medium">{error}</p>
+                        <button onClick={() => setError('')} className="text-red-400 hover:text-red-300 ml-4">
+                            <Zap size={16} />
+                        </button>
+                    </div>
+                )}
+
                 {/* Header / Breadcrumbs */}
                 <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                     <div>
