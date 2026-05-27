@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { servicesSection } from '../data/services';
+import { useState, useEffect } from 'react';
 import ServiceCard from '../components/ServiceCard';
 import SectionHeader from '../components/SectionHeader';
 import StatsBar from '../components/StatsBar';
+import { homepageService } from '../services/homepage.service';
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 function HeroSection() {
@@ -131,71 +131,107 @@ function TabButton({ tab, isActive, onClick }) {
   );
 }
 
-// ─── Services Section ─────────────────────────────────────────────────────────
-function ServicesSection() {
-  const { title, subtitle, tabs, defaultTab } = servicesSection;
-  const [activeTab, setActiveTab] = useState(defaultTab);
+const toServiceCard = (p) => ({
+  id: p._id,
+  name: p.name,
+  tagline: p.tagline || '',
+  target: p.target || '',
+  price: p.pricing?.[0] ? {
+    startingFrom: p.pricing[0].price,
+    setup: p.pricing[0].setupFee || undefined,
+    currency: '₹',
+    period: `/${p.pricing[0].cycle === 'monthly' ? 'mo' : p.pricing[0].cycle}`,
+  } : undefined,
+  startingPrice: p.pricing?.[0] ? undefined : undefined,
+  features: p.features?.map(f => f.name || f.value || f) || [],
+  cta: { label: 'Coming Soon', link: '#contact' },
+  badge: 'Coming Soon',
+  isRecommended: false,
+});
 
-  const currentTab = tabs.find((t) => t.id === activeTab) || tabs[0];
+const tabConfig = [
+  { id: 'solutions', label: '🚀 Business Solutions', desc: 'All-in-one packages designed for real business outcomes — coming soon' },
+  { id: 'infrastructure', label: '🧱 Infrastructure', desc: 'Powerful, scalable building blocks for your projects — coming soon' },
+  { id: 'addons', label: '🔐 Domains, Email & Security', desc: 'Essential services to complete your online presence — coming soon' },
+];
+
+function ServicesSection() {
+  const [groups, setGroups] = useState({ solutions: [], infrastructure: [], addons: [] });
+  const [activeTab, setActiveTab] = useState('solutions');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await homepageService.getProducts();
+        setGroups(res.data);
+      } catch {
+        setGroups({ solutions: [], infrastructure: [], addons: [] });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const currentCards = groups[activeTab] || [];
 
   return (
     <section id="services" className="section-webgenix">
       <div className="container-webgenix">
         <SectionHeader
           eyebrow="Our Services"
-          title={title}
-          subtitle={subtitle}
+          title="Solutions Built for Your Growth"
+          subtitle="From launching your first website to scaling enterprise infrastructure — we've got you covered."
         />
 
-        {/* Tab bar */}
         <div
           className="flex flex-wrap justify-center gap-2 mb-10"
           role="tablist"
           aria-label="Service categories"
         >
-          {tabs.map((tab) => (
+          {tabConfig.map((tab) => (
             <TabButton
               key={tab.id}
-              tab={tab}
+              tab={{ id: tab.id, label: tab.label }}
               isActive={tab.id === activeTab}
               onClick={setActiveTab}
             />
           ))}
         </div>
 
-        {/* Tab description */}
-        {currentTab.description && (
+        {!loading && tabConfig.find(t => t.id === activeTab)?.desc && (
           <p className="text-center text-text-muted text-sm mb-8">
-            {currentTab.description}
+            {tabConfig.find(t => t.id === activeTab)?.desc}
           </p>
         )}
 
-        {/* Cards grid */}
-        {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            id={`tabpanel-${tab.id}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${tab.id}`}
-            hidden={tab.id !== activeTab}
-          >
+        <div
+          role="tabpanel"
+          id={`tabpanel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}
+        >
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
             <div
               className={`grid gap-6 ${
-                tab.cards.length === 4
+                currentCards.length === 4
                   ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'
-                  : tab.cards.length === 3
+                  : currentCards.length === 3
                   ? 'grid-cols-1 md:grid-cols-3'
-                  : 'grid-cols-1 sm:grid-cols-2'
+                  : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
               }`}
             >
-              {tab.cards.map((card, idx) => (
-                <ServiceCard key={card.id} card={card} index={idx} />
+              {currentCards.map((card, idx) => (
+                <ServiceCard key={card._id} card={toServiceCard(card)} index={idx} />
               ))}
             </div>
-          </div>
-        ))}
+          )}
+        </div>
 
-        {/* Bottom CTA */}
         <div className="text-center mt-14">
           <p className="text-text-muted text-sm mb-4">
             Need something custom? We've got you covered.

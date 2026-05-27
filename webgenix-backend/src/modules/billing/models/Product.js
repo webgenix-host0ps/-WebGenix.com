@@ -87,6 +87,42 @@ const productSchema = new Schema({
     pricing: [productPricingSchema],
     features: [productFeatureSchema],
     
+    // Homepage display
+    showOnHomepage: {
+        type: Boolean,
+        default: false,
+    },
+    homepageGroup: {
+        type: String,
+        enum: ['solutions', 'infrastructure', 'addons', ''],
+        default: '',
+    },
+    homepageOrder: {
+        type: Number,
+        default: 0,
+    },
+    tagline: {
+        type: String,
+    },
+    target: {
+        type: String,
+    },
+    ctaLabel: {
+        type: String,
+        default: 'Get Started',
+    },
+    ctaLink: {
+        type: String,
+        default: '#contact',
+    },
+    badge: {
+        type: String,
+    },
+    isRecommended: {
+        type: Boolean,
+        default: false,
+    },
+
     // Custom options (for configurable products)
     options: [{
         name: String,

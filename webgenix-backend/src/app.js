@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import { env } from './config/env.js';
 import routes from './routes/index.js';
+import servicesRoutes from './modules/services/services.routes.js';
 import razorpayWebhookRoutes from './modules/payments/razorpay.webhook.js';
 import { sanitizeInput } from './middlewares/sanitize.middleware.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
@@ -68,6 +69,7 @@ app.use('/api', apiLimiter);
 
 // API routes (excluding webhooks which are handled above)
 app.use('/api', routes);
+app.use('/api/services', servicesRoutes);
 
 // Error handling
 app.use(notFound);

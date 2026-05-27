@@ -17,13 +17,14 @@ const router = Router();
 // Payment routes (with its own middleware setup)
 router.use('/payments', paymentRoutes);
 
+// Public routes (no auth required)
+router.get('/products/homepage', billingController.getHomepageProducts);
+router.get('/products', validate(productQuerySchema), billingController.listProducts);
+
 // All routes require authentication
 router.use(authMiddleware);
 
-// ============ PUBLIC/PROTECTED PRODUCT ROUTES ============
-
-// List products (public - for storefront)
-router.get('/products', validate(productQuerySchema), billingController.listProducts);
+// ============ PROTECTED PRODUCT ROUTES ============
 
 // Get featured products (public)
 router.get('/products/featured', billingController.getFeaturedProducts);

@@ -7,6 +7,9 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import Home from './pages/Home.jsx';
+import ServicesPage from './pages/ServicesPage.jsx';
+import ServiceDetail from './pages/ServiceDetail.jsx';
+import Products from './pages/Products.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
@@ -53,7 +56,7 @@ import InvoicesList from './pages/billing/InvoicesList.jsx';
 import InvoiceDetail from './pages/billing/InvoiceDetail.jsx';
 import ServicesList from './pages/billing/ServicesList.jsx';
 import MyServices from './pages/services/MyServices.jsx';
-import ServiceDetail from './pages/services/ServiceDetail.jsx';
+import BillingServiceDetail from './pages/services/ServiceDetail.jsx';
 import Settings from './pages/Settings.jsx';
 import OrderSuccess from './pages/billing/OrderSuccess.jsx';
 import MarketplacePage from './pages/MarketplacePage.jsx';
@@ -65,7 +68,7 @@ function Layout({ children }) {
     location.pathname.startsWith(path)
   );
   const isDashboardRoute = [
-    '/dashboard', '/admin', '/support', '/billing', '/leads', '/store', '/marketplace', '/checkout', '/orders', '/invoices', '/services', '/settings', '/order-success'
+    '/dashboard', '/admin', '/support', '/billing', '/leads', '/store', '/marketplace', '/checkout', '/orders', '/invoices', '/my-services', '/settings', '/order-success'
   ].some(path => location.pathname.startsWith(path));
 
   return (
@@ -110,7 +113,10 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
 
-            {/* Public Marketplace routes */}
+            {/* Public Services & Products routes */}
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/services/:slug" element={<ServiceDetail />} />
+            <Route path="/products" element={<Products />} />
             <Route path="/marketplace" element={<MarketplacePage />} />
             <Route path="/store" element={<MarketplacePage />} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
@@ -119,9 +125,8 @@ export default function App() {
             <Route path="/orders" element={<ProtectedRoute><OrdersList /></ProtectedRoute>} />
             <Route path="/invoices" element={<ProtectedRoute><InvoicesList /></ProtectedRoute>} />
             <Route path="/invoices/:id" element={<ProtectedRoute><InvoiceDetail /></ProtectedRoute>} />
-            <Route path="/services" element={<ProtectedRoute><MyServices /></ProtectedRoute>} />
-            <Route path="/services/:id" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
             <Route path="/my-services" element={<ProtectedRoute><MyServices /></ProtectedRoute>} />
+            <Route path="/my-services/:id" element={<ProtectedRoute><BillingServiceDetail /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
 

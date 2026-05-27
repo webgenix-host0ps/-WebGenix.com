@@ -86,26 +86,19 @@ export default function Login() {
           required
         />
 
-        <div className="relative">
-          <AuthInput
-            label="Password"
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
-            icon={Lock}
-            value={formData.password}
-            onChange={handleChange}
-            error={errors.password}
-            required
-          />
-          <button
-            type="button"
-            className="absolute right-3.5 top-[38px] text-text-muted hover:text-text-secondary transition-colors"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
+        <AuthInput
+          label="Password"
+          id="password"
+          type={showPassword ? 'text' : 'password'}
+          placeholder="••••••••"
+          icon={Lock}
+          rightIcon={showPassword ? EyeOff : Eye}
+          onRightIconClick={() => setShowPassword(!showPassword)}
+          value={formData.password}
+          onChange={handleChange}
+          error={errors.password}
+          required
+        />
 
         <div className="flex items-center justify-between py-1">
           <label className="flex items-center gap-2.5 cursor-pointer group">

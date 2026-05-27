@@ -39,7 +39,15 @@ const servicesCatalog = [
             '1 Email Account',
             'Daily Backups',
             '99.9% Uptime Guarantee'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'solutions',
+        homepageOrder: 0,
+        tagline: 'Perfect for personal blogs and portfolios',
+        target: 'Freelancers, bloggers',
+        ctaLabel: 'Get Started',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: 'Business Hosting',
@@ -62,7 +70,15 @@ const servicesCatalog = [
             'Priority Support',
             'Free Domain (Annual)',
             '99.9% Uptime Guarantee'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'solutions',
+        homepageOrder: 1,
+        tagline: 'We handle tech, you grow',
+        target: 'SMEs, growing businesses',
+        ctaLabel: 'Scale My Business',
+        badge: 'Most Popular',
+        isRecommended: true,
     },
     {
         name: 'Pro Hosting',
@@ -86,7 +102,15 @@ const servicesCatalog = [
             'Free Domain Forever',
             'Dedicated IP Address',
             '99.99% Uptime SLA'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'solutions',
+        homepageOrder: 3,
+        tagline: 'Maximum performance for demanding sites',
+        target: 'Professionals, agencies',
+        ctaLabel: 'Go Pro',
+        badge: '',
+        isRecommended: false,
     },
     
     // === VPS HOSTING ===
@@ -110,7 +134,15 @@ const servicesCatalog = [
             'DDoS Protection',
             '99.9% Uptime Guarantee',
             '24/7 Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'infrastructure',
+        homepageOrder: 0,
+        tagline: 'Dedicated resources for your applications',
+        target: 'Developers, startups',
+        ctaLabel: 'Explore VPS',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: 'VPS Standard',
@@ -133,7 +165,15 @@ const servicesCatalog = [
             'Managed Backups',
             '99.9% Uptime Guarantee',
             'Priority 24/7 Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'solutions',
+        homepageOrder: 2,
+        tagline: 'Enterprise infra without hiring a team',
+        target: 'SaaS founders, developers',
+        ctaLabel: 'Automate My Infra',
+        badge: 'Advanced',
+        isRecommended: false,
     },
     {
         name: 'VPS Premium',
@@ -156,7 +196,15 @@ const servicesCatalog = [
             'Automated Daily Backups',
             '99.99% Uptime SLA',
             'Dedicated Account Manager'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'infrastructure',
+        homepageOrder: 2,
+        tagline: 'High-performance VPS for resource-heavy apps',
+        target: 'Dev teams, enterprises',
+        ctaLabel: 'Scale Up',
+        badge: '',
+        isRecommended: false,
     },
     
     // === DOMAIN REGISTRATION ===
@@ -178,7 +226,15 @@ const servicesCatalog = [
             'Email Forwarding',
             'Theft Protection',
             '24/7 Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 0,
+        tagline: 'The web\'s most recognized domain',
+        target: 'New projects, branding',
+        ctaLabel: 'Register .COM',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: '.IN Domain',
@@ -197,7 +253,15 @@ const servicesCatalog = [
             'Domain Forwarding',
             'Email Forwarding',
             'Theft Protection'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 3,
+        tagline: 'India\'s favorite domain extension',
+        target: 'India-focused businesses',
+        ctaLabel: 'Get .IN',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: '.NET Domain',
@@ -216,7 +280,15 @@ const servicesCatalog = [
             'Domain Forwarding',
             'Email Forwarding',
             'Theft Protection'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 4,
+        tagline: 'The standard for tech domains',
+        target: 'Tech companies, startups',
+        ctaLabel: 'Register .NET',
+        badge: '',
+        isRecommended: false,
     },
     
     // === SSL CERTIFICATES ===
@@ -237,7 +309,15 @@ const servicesCatalog = [
             'Browser Padlock',
             'HTTPS Support',
             'Universal Browser Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 5,
+        tagline: 'Free SSL for basic security needs',
+        target: 'Personal sites, blogs',
+        ctaLabel: 'Get Free SSL',
+        badge: 'Free',
+        isRecommended: false,
     },
     {
         name: 'Premium SSL',
@@ -258,7 +338,15 @@ const servicesCatalog = [
             'HTTPS Support',
             'Universal Browser Support',
             'Priority Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 1,
+        tagline: 'Trust & security for your business',
+        target: 'E-commerce, business',
+        ctaLabel: 'Secure My Site',
+        badge: 'Popular',
+        isRecommended: false,
     },
     {
         name: 'Wildcard SSL',
@@ -278,7 +366,15 @@ const servicesCatalog = [
             '$100,000 Warranty',
             'Site Seal',
             'Universal Browser Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 6,
+        tagline: 'Secure unlimited subdomains with one cert',
+        target: 'Enterprises, dev teams',
+        ctaLabel: 'Get Wildcard SSL',
+        badge: '',
+        isRecommended: false,
     },
     
     // === EMAIL SERVICES ===
@@ -300,7 +396,15 @@ const servicesCatalog = [
             'Anti-Spam Protection',
             'Ad-Free Interface',
             'IMAP/POP3 Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 7,
+        tagline: 'Affordable business email with your domain',
+        target: 'SMEs, startups',
+        ctaLabel: 'Get Email',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: 'Business Email Pro',
@@ -322,7 +426,15 @@ const servicesCatalog = [
             'Shared Contacts',
             'Email Groups',
             'Priority Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 2,
+        tagline: 'Professional email with your domain',
+        target: 'SMEs, remote teams',
+        ctaLabel: 'Setup Email',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: 'Microsoft 365 Email',
@@ -343,7 +455,15 @@ const servicesCatalog = [
             'Teams Integration',
             'Advanced Security',
             '24/7 Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 9,
+        tagline: 'Enterprise email powered by Microsoft 365',
+        target: 'Businesses, enterprises',
+        ctaLabel: 'Go Microsoft 365',
+        badge: '',
+        isRecommended: false,
     },
     
     // === SECURITY & ADDONS ===
@@ -364,7 +484,15 @@ const servicesCatalog = [
             'File Change Monitoring',
             'Email Alerts',
             'SiteLock Trust Seal'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 10,
+        tagline: 'Daily malware scanning & automatic removal',
+        target: 'Security-conscious site owners',
+        ctaLabel: 'Secure Now',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: 'CodeGuard Basic',
@@ -383,7 +511,15 @@ const servicesCatalog = [
             'File Change Monitoring',
             'Download Backups',
             'Email Notifications'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 11,
+        tagline: 'Automated backups with 1-click restore',
+        target: 'All website owners',
+        ctaLabel: 'Backup My Site',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: 'Cloudflare CDN',
@@ -402,7 +538,15 @@ const servicesCatalog = [
             'Mobile Optimization',
             'Analytics Dashboard',
             'Free SSL Included'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'addons',
+        homepageOrder: 12,
+        tagline: 'Speed up your site with global CDN',
+        target: 'Performance-focused sites',
+        ctaLabel: 'Boost Speed',
+        badge: '',
+        isRecommended: false,
     },
     
     // === DEDICATED SERVERS ===
@@ -426,7 +570,15 @@ const servicesCatalog = [
             'IPMI Access',
             'Hardware RAID',
             '99.99% Uptime SLA'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'infrastructure',
+        homepageOrder: 1,
+        tagline: 'Raw power for demanding workloads',
+        target: 'Agencies, high-traffic sites',
+        ctaLabel: 'Deploy Server',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: 'Dedicated Server - Pro',
@@ -448,7 +600,15 @@ const servicesCatalog = [
             'IPMI Access',
             'Managed Support Included',
             '99.99% Uptime SLA'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'infrastructure',
+        homepageOrder: 3,
+        tagline: 'Dual Xeon power for mission-critical apps',
+        target: 'Enterprises, high-traffic apps',
+        ctaLabel: 'Deploy Pro Server',
+        badge: '',
+        isRecommended: false,
     },
     
     // === RESELLER HOSTING ===
@@ -471,7 +631,15 @@ const servicesCatalog = [
             'Free Billing Software',
             'Private Nameservers',
             '24/7 Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'solutions',
+        homepageOrder: 4,
+        tagline: 'Start your own hosting business',
+        target: 'Entrepreneurs, freelancers',
+        ctaLabel: 'Start Reselling',
+        badge: '',
+        isRecommended: false,
     },
     {
         name: 'Reseller Pro',
@@ -493,7 +661,15 @@ const servicesCatalog = [
             'Private Nameservers',
             'Free Domain Reseller Account',
             'Priority Support'
-        ]
+        ],
+        showOnHomepage: true,
+        homepageGroup: 'solutions',
+        homepageOrder: 5,
+        tagline: 'Scale your hosting business to 50+ clients',
+        target: 'Growing hosting businesses',
+        ctaLabel: 'Scale Reseller',
+        badge: '',
+        isRecommended: false,
     }
 ];
 
@@ -526,6 +702,15 @@ async function seedProducts() {
                 })),
                 parentProduct: null,
                 requiresParent: false,
+                showOnHomepage: service.showOnHomepage || false,
+                homepageGroup: service.homepageGroup || '',
+                homepageOrder: service.homepageOrder ?? 99,
+                tagline: service.tagline || '',
+                target: service.target || '',
+                ctaLabel: service.ctaLabel || 'View Details',
+                ctaLink: service.ctaLink || '',
+                badge: service.badge || '',
+                isRecommended: service.isRecommended || false,
             };
 
             // Check if product already exists

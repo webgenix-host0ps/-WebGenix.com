@@ -41,7 +41,7 @@ export default function ServiceCard({ card, index = 0 }) {
               type={
                 card.badge === 'Most Popular' || card.badge === 'Recommended' || card.badge === 'Best for Beginners'
                   ? 'popular'
-                  : card.badge === 'comingSoon'
+                  : card.badge === 'comingSoon' || card.badge === 'Coming Soon'
                   ? 'comingSoon'
                   : 'default'
               }

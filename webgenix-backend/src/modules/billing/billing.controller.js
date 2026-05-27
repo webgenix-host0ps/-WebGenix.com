@@ -85,6 +85,14 @@ export const getFeaturedProducts = asyncHandler(async (req, res) => {
     });
 });
 
+export const getHomepageProducts = asyncHandler(async (req, res) => {
+    const groups = await productService.getHomepageProducts();
+    res.json({
+        success: true,
+        data: groups,
+    });
+});
+
 export const getProductCategories = asyncHandler(async (req, res) => {
     const { type } = req.query;
     const categories = await productService.getProductCategories(type);

@@ -7,6 +7,7 @@ import {
   Filter, LayoutGrid, List, Activity, Sparkles, Box, ArrowRight
 } from 'lucide-react';
 import { billingService } from '../../services/billing.service';
+import { svcService } from '../../services/svc.service';
 import { useCart } from '../../context/CartContext.jsx';
 
 const categoryConfig = {
@@ -29,16 +30,32 @@ const getCategoryConfig = (category) => {
 export default function Marketplace() {
   const { cart, addToCart: addToCartContext, removeFromCart: removeFromCartContext, getCartTotal, getCartItemCount } = useCart();
   const [products, setProducts] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('grid');
+  const [activeTab, setActiveTab] = useState('products');
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
+    fetchServices();
   }, []);
+
+  const fetchServices = async () => {
+    try {
+      const response = await svcService.getWebDevServices();
+      let data = [];
+      if (Array.isArray(response)) data = response;
+      else if (response.data && Array.isArray(response.data)) data = response.data;
+      else if (response.services && Array.isArray(response.services)) data = response.services;
+      setServices(data);
+    } catch (err) {
+      console.error('Error fetching services:', err);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -163,6 +180,35 @@ export default function Marketplace() {
         </div>
       </div>
 
+      {/* Tab Switcher: Products / Services */}
+      <div className="flex gap-2 p-1.5 bg-white/[0.02] border border-white/[0.06] rounded-2xl w-fit">
+        <button
+          onClick={() => setActiveTab('products')}
+          className={`px-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${
+            activeTab === 'products'
+              ? 'bg-accent text-white shadow-lg shadow-accent/20'
+              : 'text-text-muted hover:text-white'
+          }`}
+        >
+          <Package size={14} className="inline mr-2" />
+          Products
+        </button>
+        <button
+          onClick={() => setActiveTab('services')}
+          className={`px-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${
+            activeTab === 'services'
+              ? 'bg-accent text-white shadow-lg shadow-accent/20'
+              : 'text-text-muted hover:text-white'
+          }`}
+        >
+          <Activity size={14} className="inline mr-2" />
+          Services
+        </button>
+      </div>
+
+      {activeTab === 'products' ? (
+      /* Products View */
+      <>
       {/* Categories & Search */}
       <div className="flex flex-col gap-6">
         {/* Category Pills - Improved Approach */}
@@ -332,6 +378,75 @@ export default function Marketplace() {
       )}
 
       <div className="h-12" />
+      </>
+      ) : (
+      /* Services View */
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <Activity size={20} />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-white tracking-tight">Web Development Services</h3>
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest opacity-50">
+              {services.length} services available
+            </p>
+          </div>
+          <div className="flex-1 h-px bg-white/5 ml-2"></div>
+        </div>
+
+        {services.length === 0 ? (
+          <div className="text-center py-16 bg-white/[0.01] border border-dashed border-white/10 rounded-[32px]">
+            <Activity className="w-12 h-12 mx-auto text-text-muted mb-4 opacity-20" />
+            <h3 className="text-xl font-bold text-white mb-2">No services yet</h3>
+            <p className="text-text-secondary text-sm opacity-60">Web development services are being added.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((service) => (
+              <div
+                key={service._id}
+                className="group relative bg-white/[0.02] border border-white/[0.06] rounded-3xl p-8 transition-all duration-300 hover:bg-white/[0.04] flex flex-col cursor-pointer"
+                onClick={() => navigate(`/services/${service.slug}`)}
+              >
+                <h4 className="text-lg font-bold text-white mb-2 group-hover:text-accent transition-colors">{service.name}</h4>
+                <p className="text-text-secondary text-xs leading-relaxed mb-6 line-clamp-2 opacity-70">
+                  {service.description}
+                </p>
+
+                {service.features && (
+                  <div className="space-y-3 mb-8 flex-1">
+                    {service.features.slice(0, 4).map((feature, idx) => (
+                      <div key={idx} className="flex items-center gap-2.5 text-[10px] font-medium text-text-secondary">
+                        <Check size={14} className="text-green-500 flex-shrink-0" />
+                        <span className="opacity-80 truncate">{typeof feature === 'string' ? feature : feature.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-4">
+                  {service.price > 0 && (
+                    <div>
+                      <p className="text-[9px] text-text-muted uppercase font-bold tracking-widest mb-0.5 opacity-60">Starting At</p>
+                      <p className="text-lg font-bold text-white">₹{service.price.toLocaleString()}</p>
+                    </div>
+                  )}
+                  <div className="ml-auto">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent rounded-xl text-[10px] font-bold uppercase tracking-widest group-hover:bg-accent group-hover:text-white transition-all">
+                      Learn More <ArrowRight size={14} />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="h-12" />
+      </div>
+      )}
+
     </div>
   );
 }

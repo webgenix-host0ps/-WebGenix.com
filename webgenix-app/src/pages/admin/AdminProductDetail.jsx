@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import { adminService } from '../../services/admin.service';
-import { ArrowLeft, Save, Package, Info, Tag, Settings, Zap } from 'lucide-react';
+import { ArrowLeft, Save, Package, Info, Tag, Settings, Zap, Globe } from 'lucide-react';
 
 export default function AdminProductDetail() {
     const { id } = useParams();
@@ -16,7 +16,16 @@ export default function AdminProductDetail() {
         category: 'Shared Hosting',
         type: 'hosting',
         status: 'active',
-        pricing: [{ cycle: 'monthly', price: '' }]
+        pricing: [{ cycle: 'monthly', price: '' }],
+        showOnHomepage: false,
+        homepageGroup: '',
+        homepageOrder: 0,
+        tagline: '',
+        target: '',
+        ctaLabel: 'Get Started',
+        ctaLink: '#contact',
+        badge: '',
+        isRecommended: false,
     });
 
     useEffect(() => {
@@ -31,7 +40,16 @@ export default function AdminProductDetail() {
                         category: prod.category || 'Shared Hosting',
                         type: prod.type || 'hosting',
                         status: prod.status || 'active',
-                        pricing: prod.pricing || [{ cycle: 'monthly', price: '' }]
+                        pricing: prod.pricing || [{ cycle: 'monthly', price: '' }],
+                        showOnHomepage: prod.showOnHomepage || false,
+                        homepageGroup: prod.homepageGroup || '',
+                        homepageOrder: prod.homepageOrder || 0,
+                        tagline: prod.tagline || '',
+                        target: prod.target || '',
+                        ctaLabel: prod.ctaLabel || 'Get Started',
+                        ctaLink: prod.ctaLink || '#contact',
+                        badge: prod.badge || '',
+                        isRecommended: prod.isRecommended || false,
                     });
                 } catch (error) {
                     console.error(error);
@@ -211,18 +229,112 @@ export default function AdminProductDetail() {
                             </div>
                         </div>
 
-                        {/* Integration Hint */}
-                        <div className="p-8 rounded-[32px] bg-gradient-to-br from-accent/20 to-purple-600/10 border border-accent/20">
-                            <Zap className="text-accent mb-4" size={24} />
-                            <h4 className="text-white font-black text-sm mb-2 uppercase tracking-tight">Provisioning Matrix</h4>
-                            <p className="text-[10px] text-text-secondary leading-relaxed font-bold uppercase tracking-widest opacity-60">
-                                This node is set for automated deployment via cPanel/WHM API. Ensure server nodes are configured in System Settings.
-                            </p>
+                        {/* Homepage Visibility */}
+                        <div className="bg-dark-900/50 border border-header-border rounded-[32px] p-8">
+                            <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <Globe size={16} className="text-accent" /> Homepage Display
+                            </h3>
+                            <div className="space-y-5">
+                                <label className="flex items-center gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.showOnHomepage}
+                                        onChange={(e) => setFormData({...formData, showOnHomepage: e.target.checked})}
+                                        className="checkbox-webgenix"
+                                    />
+                                    <span className="text-sm text-text-primary font-medium">Show on Homepage</span>
+                                </label>
+
+                                {formData.showOnHomepage && (
+                                    <>
+                                        <div>
+                                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">Tab Group</label>
+                                            <select
+                                                value={formData.homepageGroup}
+                                                onChange={(e) => setFormData({...formData, homepageGroup: e.target.value})}
+                                                className="w-full bg-dark-800 border border-header-border rounded-xl p-4 text-white outline-none"
+                                            >
+                                                <option value="solutions">Business Solutions</option>
+                                                <option value="infrastructure">Infrastructure</option>
+                                                <option value="addons">Domains, Email & Security</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">Order</label>
+                                            <input
+                                                type="number"
+                                                value={formData.homepageOrder}
+                                                onChange={(e) => setFormData({...formData, homepageOrder: parseInt(e.target.value) || 0})}
+                                                className="w-full bg-dark-800 border border-header-border rounded-xl p-4 text-white outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">Tagline</label>
+                                            <input
+                                                type="text"
+                                                value={formData.tagline}
+                                                onChange={(e) => setFormData({...formData, tagline: e.target.value})}
+                                                className="w-full bg-dark-800 border border-header-border rounded-xl p-4 text-white focus:border-accent outline-none transition-all"
+                                                placeholder="Brief one-liner"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">Target Audience</label>
+                                            <input
+                                                type="text"
+                                                value={formData.target}
+                                                onChange={(e) => setFormData({...formData, target: e.target.value})}
+                                                className="w-full bg-dark-800 border border-header-border rounded-xl p-4 text-white focus:border-accent outline-none transition-all"
+                                                placeholder="e.g. Startups, SMEs"
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">CTA Label</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.ctaLabel}
+                                                    onChange={(e) => setFormData({...formData, ctaLabel: e.target.value})}
+                                                    className="w-full bg-dark-800 border border-header-border rounded-xl p-4 text-white focus:border-accent outline-none transition-all"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">CTA Link</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.ctaLink}
+                                                    onChange={(e) => setFormData({...formData, ctaLink: e.target.value})}
+                                                    className="w-full bg-dark-800 border border-header-border rounded-xl p-4 text-white focus:border-accent outline-none transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">Badge</label>
+                                            <input
+                                                type="text"
+                                                value={formData.badge}
+                                                onChange={(e) => setFormData({...formData, badge: e.target.value})}
+                                                className="w-full bg-dark-800 border border-header-border rounded-xl p-4 text-white focus:border-accent outline-none transition-all"
+                                                placeholder="e.g. Most Popular, Best for Beginners"
+                                            />
+                                        </div>
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.isRecommended}
+                                                onChange={(e) => setFormData({...formData, isRecommended: e.target.checked})}
+                                                className="checkbox-webgenix"
+                                            />
+                                            <span className="text-sm text-text-primary font-medium">Recommended</span>
+                                        </label>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
 
                 <div className="h-10" />
+                </div>
             </div>
         </DashboardLayout>
     );

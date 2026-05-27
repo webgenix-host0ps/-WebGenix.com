@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function AuthInput({ label, id, type = 'text', placeholder, value, onChange, error, icon: Icon, required = false, ...props }) {
+export default function AuthInput({ label, id, type = 'text', placeholder, value, onChange, error, icon: Icon, rightIcon: RightIcon, onRightIconClick, required = false, ...props }) {
   return (
     <div className="flex flex-col gap-2 w-full group">
       <label htmlFor={id} className="text-[13px] font-semibold text-text-secondary group-focus-within:text-accent transition-colors flex items-center gap-1">
@@ -18,10 +18,20 @@ export default function AuthInput({ label, id, type = 'text', placeholder, value
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`input-webgenix ${Icon ? 'pl-12' : ''} ${error ? 'border-error/50 focus:border-error focus:box-shadow-[0_0_0_4px_rgba(239,68,68,0.1)]' : ''}`}
+          className={`input-webgenix ${Icon ? 'pl-12' : ''} ${RightIcon ? 'pr-12' : ''} ${error ? 'border-error/50 focus:border-error focus:box-shadow-[0_0_0_4px_rgba(239,68,68,0.1)]' : ''}`}
           required={required}
           {...props}
         />
+        {RightIcon && (
+          <button
+            type="button"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
+            onClick={onRightIconClick}
+            tabIndex={-1}
+          >
+            <RightIcon size={18} />
+          </button>
+        )}
       </div>
       {error && (
         <div className="flex items-center gap-1.5 mt-1 animate-fade-in-fast">

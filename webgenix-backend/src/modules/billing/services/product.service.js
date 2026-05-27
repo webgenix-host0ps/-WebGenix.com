@@ -157,6 +157,21 @@ export const getFeaturedProducts = async () => {
     return Product.find({ featured: true, status: 'active' }).sort({ order: 1 });
 };
 
+export const getHomepageProducts = async () => {
+    const products = await Product.find({
+        showOnHomepage: true,
+        status: 'active',
+    }).sort({ homepageOrder: 1, order: 1 });
+
+    const groups = { solutions: [], infrastructure: [], addons: [] };
+    for (const p of products) {
+        if (groups[p.homepageGroup]) {
+            groups[p.homepageGroup].push(p);
+        }
+    }
+    return groups;
+};
+
 export const getAddons = async () => {
     return Product.find({ type: 'addon', status: 'active' }).sort({ order: 1 });
 };

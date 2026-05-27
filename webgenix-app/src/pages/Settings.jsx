@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { useAuth } from '../context/AuthContext';
-import { 
+import {
     User, Building2, MapPin, Save, Loader2, Check,
-    Shield, CreditCard, Bell, 
+    Shield, CreditCard, Bell,
     ChevronRight, Globe, Fingerprint, AtSign, Smartphone, Camera,
     AlertTriangle, AlertCircle, Monitor, Clock, XCircle
 } from 'lucide-react';
@@ -17,7 +17,7 @@ export default function Settings() {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [activeTab, setActiveTab] = useState('profile');
-    
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -38,6 +38,10 @@ export default function Settings() {
 
     const [sessions, setSessions] = useState([]);
     const [sessionsLoading, setSessionsLoading] = useState(false);
+
+    useEffect(() => {
+        loadUserData();
+    }, []);
 
     useEffect(() => {
         if (activeTab === 'security') {
@@ -107,7 +111,7 @@ export default function Settings() {
             setLoading(true);
             const response = await authService.getCurrentUser();
             const user = response.data?.user || response.data;
-            
+
             if (user) {
                 setFormData({
                     name: user.name || '',
@@ -208,7 +212,7 @@ export default function Settings() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    
+
                     {/* Left Sidebar Navigation */}
                     <div className="lg:col-span-4 xl:col-span-3 space-y-6 lg:sticky lg:top-28">
                         <div className="bg-white/[0.03] border border-white/[0.06] rounded-[32px] p-6 shadow-xl overflow-hidden">
@@ -232,11 +236,10 @@ export default function Settings() {
                                     <button
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id)}
-                                        className={`w-full flex items-start gap-4 p-4 rounded-2xl text-left transition-all group ${
-                                            activeTab === item.id 
-                                                ? 'bg-accent/10 border border-accent/20' 
+                                        className={`w-full flex items-start gap-4 p-4 rounded-2xl text-left transition-all group ${activeTab === item.id
+                                                ? 'bg-accent/10 border border-accent/20'
                                                 : 'border border-transparent hover:bg-white/5'
-                                        }`}
+                                            }`}
                                     >
                                         <div className={`mt-0.5 ${activeTab === item.id ? 'text-accent' : 'text-text-muted group-hover:text-white transition-colors'}`}>
                                             {item.icon}
@@ -267,13 +270,12 @@ export default function Settings() {
 
                     {/* Main Settings Content */}
                     <div className="lg:col-span-8 xl:col-span-9 space-y-6">
-                        
+
                         {message.text && (
-                            <div className={`p-5 rounded-[24px] flex items-center gap-3 animate-in slide-in-from-bottom-4 ${
-                                message.type === 'success' 
-                                    ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
+                            <div className={`p-5 rounded-[24px] flex items-center gap-3 animate-in slide-in-from-bottom-4 ${message.type === 'success'
+                                    ? 'bg-green-500/10 border border-green-500/20 text-green-400'
                                     : 'bg-red-500/10 border border-red-500/20 text-red-400'
-                            }`}>
+                                }`}>
                                 {message.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
                                 <span className="text-sm font-black uppercase tracking-widest">{message.text}</span>
                             </div>
@@ -298,7 +300,7 @@ export default function Settings() {
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-accent">Identity Core</span>
                                             <div className="h-px flex-1 bg-white/5"></div>
                                         </div>
-                                        
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1 opacity-60">Legal Designation</label>
@@ -353,7 +355,7 @@ export default function Settings() {
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400">Business Nexus</span>
                                             <div className="h-px flex-1 bg-white/5"></div>
                                         </div>
-                                        
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1 opacity-60">Enterprise Entity</label>
@@ -390,7 +392,7 @@ export default function Settings() {
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">Geographic Hub</span>
                                             <div className="h-px flex-1 bg-white/5"></div>
                                         </div>
-                                        
+
                                         <div className="space-y-8">
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1 opacity-60">Headquarters Vector</label>
@@ -482,11 +484,11 @@ export default function Settings() {
                                         <p className="text-xs text-text-secondary font-medium leading-relaxed opacity-60 mb-8">
                                             Add an extra layer of security to your account by requiring a verification code from your mobile device.
                                         </p>
-                                        
+
                                         {authUser?.twoFactorEnabled ? (
-                                            <button 
+                                            <button
                                                 onClick={async () => {
-                                                    if(confirm('Are you sure you want to disable 2FA? This will reduce your account security level.')) {
+                                                    if (confirm('Are you sure you want to disable 2FA? This will reduce your account security level.')) {
                                                         try {
                                                             await authService.disable2FA();
                                                             setMessage({ type: 'success', text: '2FA protocol deactivated.' });
@@ -501,7 +503,7 @@ export default function Settings() {
                                                 Deactivate 2FA
                                             </button>
                                         ) : (
-                                            <button 
+                                            <button
                                                 onClick={() => setTwoFactorSetupOpen(true)}
                                                 className="w-full py-4 rounded-2xl bg-accent text-white text-[10px] font-black uppercase tracking-widest hover:bg-accent-hover transition-all shadow-xl shadow-accent/20"
                                             >
@@ -593,7 +595,7 @@ export default function Settings() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setTwoFactorSetupOpen(false)}></div>
                     <div className="relative bg-dark-900 border border-white/10 w-full max-w-lg rounded-[40px] p-10 shadow-2xl animate-in zoom-in-95 duration-300">
-                        <button 
+                        <button
                             onClick={() => setTwoFactorSetupOpen(false)}
                             className="absolute top-8 right-8 text-text-muted hover:text-white transition-colors"
                         >
@@ -614,18 +616,18 @@ export default function Settings() {
                                     <div className="p-4 bg-white rounded-[24px] inline-block shadow-2xl">
                                         <img src={setupData.qrCode} alt="2FA QR Code" className="w-48 h-48" />
                                     </div>
-                                    
+
                                     <div className="space-y-4">
                                         <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Enter 6-Digit Encryption Key</p>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             maxLength="6"
                                             value={verificationToken}
                                             onChange={(e) => setVerificationToken(e.target.value.replace(/\D/g, ''))}
                                             placeholder="000000"
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 text-center text-2xl font-mono tracking-[0.5em] text-accent focus:outline-none focus:border-accent transition-all"
                                         />
-                                        <button 
+                                        <button
                                             onClick={handleVerify2FA}
                                             disabled={verificationToken.length !== 6 || verifying}
                                             className="w-full py-5 rounded-2xl bg-accent text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-accent-hover disabled:bg-white/10 disabled:cursor-not-allowed transition-all shadow-xl shadow-accent/20"
@@ -633,7 +635,7 @@ export default function Settings() {
                                             {verifying ? 'Verifying Node...' : 'Establish Secure Link'}
                                         </button>
                                     </div>
-                                    
+
                                     <div className="p-4 bg-white/5 rounded-xl text-left border border-white/5">
                                         <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-2 opacity-50">Manual Input Key</p>
                                         <code className="text-xs text-white font-mono break-all">{setupData.secret}</code>

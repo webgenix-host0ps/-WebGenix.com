@@ -45,6 +45,15 @@ export const createProductSchema = z.object({
         status: z.enum(['active', 'inactive', 'archived']).default('active'),
         requiresParent: z.boolean().default(false),
         taxEnabled: z.boolean().default(true),
+        showOnHomepage: z.boolean().default(false),
+        homepageGroup: z.enum(['solutions', 'infrastructure', 'addons', '']).default(''),
+        homepageOrder: z.number().int().default(0),
+        tagline: z.string().optional(),
+        target: z.string().optional(),
+        ctaLabel: z.string().optional(),
+        ctaLink: z.string().optional(),
+        badge: z.string().optional(),
+        isRecommended: z.boolean().default(false),
     }),
 });
 
@@ -63,6 +72,15 @@ export const updateProductSchema = z.object({
         status: z.enum(['active', 'inactive', 'archived']).optional(),
         requiresParent: z.boolean().optional(),
         taxEnabled: z.boolean().optional(),
+        showOnHomepage: z.boolean().optional(),
+        homepageGroup: z.enum(['solutions', 'infrastructure', 'addons', '']).optional(),
+        homepageOrder: z.number().int().optional(),
+        tagline: z.string().optional(),
+        target: z.string().optional(),
+        ctaLabel: z.string().optional(),
+        ctaLink: z.string().optional(),
+        badge: z.string().optional(),
+        isRecommended: z.boolean().optional(),
     }),
 });
 
