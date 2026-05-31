@@ -109,6 +109,23 @@ export const billingService = {
         return response.data;
     },
     
+    // Single service (by ID)
+    getService: async (id) => {
+        const response = await api.get(`/billing/services/${id}`);
+        return response.data;
+    },
+
+    // Delivery details (staff only)
+    getServiceDelivery: async (id) => {
+        const response = await api.get(`/billing/admin/services/${id}/delivery`);
+        return response.data;
+    },
+
+    updateServiceDelivery: async (id, data) => {
+        const response = await api.put(`/billing/admin/services/${id}/delivery`, data);
+        return response.data;
+    },
+
     // Admin - Products
     createProduct: async (data) => {
         const response = await api.post('/billing/products', data);

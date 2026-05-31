@@ -97,7 +97,7 @@ export default function Navbar() {
             {isLight ? <Moon size={20} /> : <Sun size={20} />}
           </button>
           
-          <Link to="/products" className="p-2.5 text-text-secondary hover:text-text-primary transition-colors rounded-xl hover:bg-dark-700" title="Cart">
+          <Link to="/marketplace" className="p-2.5 text-text-secondary hover:text-text-primary transition-colors rounded-xl hover:bg-dark-700" title="Cart">
             <div className="relative">
               <ShoppingCart size={20} />
               {cartCount > 0 && (

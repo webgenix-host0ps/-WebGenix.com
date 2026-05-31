@@ -4,16 +4,7 @@ import * as billingService from './services/billing.service.js';
 import Payment from './models/Payment.js';
 import { ApiError } from '../../utils/ApiError.js';
 
-export const razorpayWebhook = asyncHandler(async (req, res) => {
-    const result = await razorpayService.handleRazorpayWebhook(req.body);
-    res.json(result);
-});
-
 export const createRazorpayOrder = asyncHandler(async (req, res) => {
-    console.log('[PaymentController] createRazorpayOrder called');
-    console.log('[PaymentController] req.userId:', req.userId);
-    console.log('[PaymentController] req.body:', req.body);
-    
     const { invoiceId } = req.body;
     
     if (!invoiceId) {

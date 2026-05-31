@@ -10,8 +10,8 @@ const router = Router();
 
 // Public routes
 router.get('/', ctrl.list);
-router.get('/:id', ctrl.getById);
 router.get('/slug/:slug', ctrl.getBySlug);
+router.get('/:id', ctrl.getById);
 
 // Admin routes
 router.use(authMiddleware);

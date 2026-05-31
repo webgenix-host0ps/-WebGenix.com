@@ -401,7 +401,7 @@ export default function Checkout() {
                         <input
                             type="text"
                             value={promoCode}
-                            onChange={(e) => setPromoCode(e.target.toUpperCase())}
+                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                             placeholder="PROMO CODE..."
                             className="flex-1 bg-transparent px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white focus:outline-none placeholder:opacity-20"
                             disabled={promoApplied}

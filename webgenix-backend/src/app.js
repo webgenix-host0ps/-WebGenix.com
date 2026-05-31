@@ -35,8 +35,23 @@ app.use(helmet({
         preload: true,
     },
 }));
+const allowedOrigins = env.NODE_ENV === 'production'
+    ? [env.CLIENT_URL]
+    : [env.CLIENT_URL, /^http:\/\/localhost:\d+$/];
+
 app.use(cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+        if (!origin || env.NODE_ENV === 'development') {
+            if (!origin) return callback(null, true);
+            const matches = allowedOrigins.some(o => {
+                if (o instanceof RegExp) return o.test(origin);
+                return o === origin;
+            });
+            if (matches) return callback(null, true);
+        }
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        callback(null, true);
+    },
     credentials: true,
 }));
 

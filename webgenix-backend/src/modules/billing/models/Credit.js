@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+const { Schema } = mongoose;
+
 const creditBalanceSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,

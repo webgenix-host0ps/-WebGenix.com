@@ -107,6 +107,12 @@ export const getTicket = asyncHandler(async (req, res) => {
     });
 });
 
+export const getClientSummary = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const data = await ticketService.getClientSummary(id, req.user);
+    res.status(200).json({ success: true, data });
+});
+
 export const addMessage = asyncHandler(async (req, res) => {
     const { id } = req.params;
     

@@ -8,7 +8,7 @@ import * as ticketController from './ticket.controller.js';
 import * as ticketValidation from './ticket.validation.js';
 import * as predefinedReplyController from './predefinedReply.controller.js';
 import { ROLES } from '../../constants/tickets.js';
-import { upload } from '../../middlewares/upload.middleware.js';
+import { upload, validateFileContent } from '../../middlewares/upload.middleware.js';
 
 const router = Router();
 
@@ -20,16 +20,19 @@ router.get('/departments', ticketController.getDepartments);
 
 // Create a new ticket (only CLIENT for now, though logic allows restrict later, controller handles it)
 // Create a new ticket
-router.post('/', upload.array('attachments', 5), sanitizeInput, createTicketLimiter, validate(ticketValidation.createTicketSchema), ticketController.createTicket);
+router.post('/', upload.array('attachments', 5), validateFileContent, sanitizeInput, createTicketLimiter, validate(ticketValidation.createTicketSchema), ticketController.createTicket);
 
 // List tickets
 router.get('/', validate(ticketValidation.listTicketsSchema), ticketController.listTickets);
+
+// Get client summary (services, invoices, orders) for the ticket's client — staff only
+router.get('/:id/client-summary', roleMiddleware([ROLES.ADMIN, ROLES.SUPPORT, ROLES.BILLING]), ticketController.getClientSummary);
 
 // Get a specific ticket with messages
 router.get('/:id', ticketController.getTicket);
 
 // Add a message (reply) to a ticket
-router.post('/:id/messages', upload.array('attachments', 5), sanitizeInput, replyTicketLimiter, validate(ticketValidation.replyTicketSchema), ticketController.addMessage);
+router.post('/:id/messages', upload.array('attachments', 5), validateFileContent, sanitizeInput, replyTicketLimiter, validate(ticketValidation.replyTicketSchema), ticketController.addMessage);
 
 // Change ticket status (Support/Admin)
 router.patch('/:id/status', adminOpsLimiter, validate(ticketValidation.changeStatusSchema), ticketController.changeStatus);

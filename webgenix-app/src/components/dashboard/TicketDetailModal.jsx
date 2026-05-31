@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import Modal from './Modal';
+import ClientAreaModal from './ClientAreaModal';
 import StatusBadge from './StatusBadge';
-import { Send, Paperclip, Zap, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import { Send, Paperclip, Zap, Eye, EyeOff, ExternalLink, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getPredefinedReplies, toggleWatcher } from '../../services/ticket.service';
 
@@ -14,6 +14,7 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdate, o
   const [priority, setPriority] = useState(ticket?.priority || 'medium');
   const [predefinedReplies, setPredefinedReplies] = useState([]);
   const [isWatching, setIsWatching] = useState(ticket?.watchers?.includes(user?._id));
+  const [showClientArea, setShowClientArea] = useState(false);
 
   const isStaff = ['admin', 'support', 'billing', 'lead'].includes(user?.role);
 
@@ -53,7 +54,7 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdate, o
     }
   };
 
-  return (
+  return (<>
     <Modal isOpen={isOpen} onClose={onClose} title={`Ticket #${ticket._id?.substring(0, 6).toUpperCase()}`} size="xl">
       <div className="flex flex-col lg:flex-row h-[75vh] gap-6">
         {/* Main Thread Area */}
@@ -66,14 +67,14 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdate, o
             {ticket.client?.email && (
               <p className="text-xs text-text-muted mt-1">{ticket.client.email}</p>
             )}
-            {ticket.client?._id && (
-              <Link 
-                to={`/admin/clients?clientId=${ticket.client._id}`}
-                className="text-xs text-accent hover:text-accent-hover flex items-center gap-1 mt-1"
+            {ticket.client?._id && isStaff && (
+              <button
+                onClick={() => setShowClientArea(true)}
+                className="text-xs text-accent hover:text-accent-hover flex items-center gap-1 mt-1 transition-colors"
               >
-                <ExternalLink size={12} />
+                <User size={12} />
                 View Client Area
-              </Link>
+              </button>
             )}
           </div>
           <div>
@@ -280,5 +281,12 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdate, o
         )}
       </div>
     </Modal>
-  );
+      {showClientArea && (
+        <ClientAreaModal
+          isOpen={showClientArea}
+          onClose={() => setShowClientArea(false)}
+          ticketId={ticket._id}
+        />
+      )}
+  </>);
 }

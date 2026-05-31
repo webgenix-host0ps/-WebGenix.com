@@ -114,7 +114,7 @@ export const adminService = {
     const response = await api.get(`/billing/products/${id}`);
     return {
       data: {
-        product: response.data
+        product: response.data.data
       }
     };
   },
@@ -125,18 +125,23 @@ export const adminService = {
   },
 
   updateProduct: async (id, data) => {
-    const response = await api.put(`/billing/products/${id}`, data);
+    const response = await api.patch(`/billing/products/${id}`, data);
     return response.data;
   },
 
   // Orders
   getOrders: async (params) => {
-    const response = await api.get('/billing/orders', { params });
+    const response = await api.get('/billing/admin/orders', { params });
     return response.data;
   },
 
   getOrder: async (id) => {
     const response = await api.get(`/billing/orders/${id}`);
+    return response.data;
+  },
+
+  updateOrderStatus: async (id, status, reason) => {
+    const response = await api.patch(`/billing/admin/orders/${id}/status`, { status, reason });
     return response.data;
   },
 

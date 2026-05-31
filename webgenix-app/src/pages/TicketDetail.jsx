@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
     Calendar, User, Shield, MessageSquare,
-    Clock, FileText, Send, MoreHorizontal, ChevronRight, Activity, Zap, RefreshCw
+    Clock, FileText, Send, MoreHorizontal, ChevronRight, Activity, Zap, RefreshCw, ExternalLink
 } from 'lucide-react';
 import { 
     getTicket, replyToTicket, changeTicketStatus, closeTicket, 
@@ -14,6 +14,7 @@ import TicketPriorityBadge from '../components/tickets/TicketPriorityBadge.jsx';
 import MessageThread from '../components/tickets/MessageThread.jsx';
 import MessageInput from '../components/tickets/MessageInput.jsx';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
+import ClientAreaModal from '../components/dashboard/ClientAreaModal';
 import toast from 'react-hot-toast';
 
 export default function TicketDetail() {
@@ -27,6 +28,7 @@ export default function TicketDetail() {
     const [error, setError] = useState('');
     const [showTransferModal, setShowTransferModal] = useState(false);
     const [showMergeModal, setShowMergeModal] = useState(false);
+    const [showClientArea, setShowClientArea] = useState(false);
     
     const messagesEndRef = useRef(null);
     const isStaff = user && ['admin', 'support', 'lead'].includes(user.role);
@@ -250,6 +252,14 @@ export default function TicketDetail() {
                                     <span className="text-[10px] font-black text-text-muted uppercase tracking-widest opacity-40 group-hover/meta:opacity-100 transition-opacity flex items-center gap-2"><User size={14} /> Subject</span>
                                     <span className="text-xs font-black text-white uppercase tracking-widest">{ticket.client?.name || 'Customer'}</span>
                                 </div>
+                                {ticket.client?._id && isStaff && (
+                                    <button
+                                        onClick={() => setShowClientArea(true)}
+                                        className="w-full mt-2 py-2 bg-accent/10 hover:bg-accent/20 text-accent hover:text-accent-hover text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 border border-accent/20"
+                                    >
+                                        <ExternalLink size={14} /> View Client Area
+                                    </button>
+                                )}
                                 <div className="flex items-center justify-between group/meta">
                                     <span className="text-[10px] font-black text-text-muted uppercase tracking-widest opacity-40 group-hover/meta:opacity-100 transition-opacity flex items-center gap-2"><Shield size={14} /> Domain</span>
                                     <span className="text-xs font-black text-white uppercase tracking-widest">{ticket.department?.name || 'Support'}</span>
@@ -321,7 +331,13 @@ export default function TicketDetail() {
                         {/* Modals */}
                         {showTransferModal && <TransferModal ticket={ticket} onClose={() => setShowTransferModal(false)} onTransferred={fetchTicketData} />}
                         {showMergeModal && <MergeModal ticket={ticket} onClose={() => setShowMergeModal(false)} onMerged={fetchTicketData} />}
-
+                        {showClientArea && (
+                            <ClientAreaModal
+                                isOpen={showClientArea}
+                                onClose={() => setShowClientArea(false)}
+                                ticketId={ticket._id}
+                            />
+                        )}
 
                     </div>
                 </div>

@@ -57,6 +57,7 @@ import InvoiceDetail from './pages/billing/InvoiceDetail.jsx';
 import ServicesList from './pages/billing/ServicesList.jsx';
 import MyServices from './pages/services/MyServices.jsx';
 import BillingServiceDetail from './pages/services/ServiceDetail.jsx';
+import ManageService from './pages/services/ManageService.jsx';
 import Settings from './pages/Settings.jsx';
 import OrderSuccess from './pages/billing/OrderSuccess.jsx';
 import MarketplacePage from './pages/MarketplacePage.jsx';
@@ -126,6 +127,7 @@ export default function App() {
             <Route path="/invoices" element={<ProtectedRoute><InvoicesList /></ProtectedRoute>} />
             <Route path="/invoices/:id" element={<ProtectedRoute><InvoiceDetail /></ProtectedRoute>} />
             <Route path="/my-services" element={<ProtectedRoute><MyServices /></ProtectedRoute>} />
+            <Route path="/my-services/:id/manage" element={<ProtectedRoute><ManageService /></ProtectedRoute>} />
             <Route path="/my-services/:id" element={<ProtectedRoute><BillingServiceDetail /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />

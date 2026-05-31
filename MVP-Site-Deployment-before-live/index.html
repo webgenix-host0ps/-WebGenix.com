@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>Webgenix – Enterprise Hosting, Security & Digital Infrastructure</title>
+  <meta name="description" content="Webgenix provides enterprise-grade shared hosting, VPS, bare metal servers, SSL certificates, domain registration, and business email — all backed by a 99.9% uptime SLA." />
+  <meta name="keywords" content="web hosting india, vps servers, ssl certificates, domain registration, business email, webgenix" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Webgenix – Enterprise Hosting & Digital Infrastructure" />
+  <meta property="og:description" content="Scale your business with Webgenix — affordable, enterprise-grade hosting, security, and infrastructure built for India." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://webgenix.com" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+  
+  <!-- Feather Icons for lightweight SVG icons -->
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="header-webgenix" id="main-header">
+    <div class="container-webgenix h-full flex items-center justify-between">
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-3 group" aria-label="Webgenix home">
+        <div class="logo-box">
+          W
+        </div>
+        <span class="logo-text">
+          Web<span class="text-gradient-webgenix">genix</span>
+        </span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden md-flex items-center gap-10" role="navigation" aria-label="Main navigation">
+        <a href="#services" class="nav-link">Services</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </nav>
+
+      <!-- Desktop CTA -->
+      <div class="hidden md-flex items-center gap-4">
+        <button id="theme-toggle" class="icon-button" title="Toggle Theme">
+          <i data-feather="sun" id="theme-icon"></i>
+        </button>
+        
+        <a href="#" class="icon-button relative" title="Cart">
+          <i data-feather="shopping-cart"></i>
+        </a>
+        
+        <a href="#" class="btn-webgenix btn-secondary-webgenix btn-sm-webgenix">Log in</a>
+        <a href="#" class="btn-webgenix btn-primary-webgenix btn-sm-webgenix">Get Started</a>
+      </div>
+
+      <!-- Mobile menu button -->
+      <button id="mobile-menu-toggle" class="md-hidden mobile-menu-btn" aria-label="Toggle mobile menu" aria-expanded="false">
+        <span class="hamburger-line line-1"></span>
+        <span class="hamburger-line line-2"></span>
+        <span class="hamburger-line line-3"></span>
+      </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="mobile-menu">
+      <div class="container-webgenix py-5 flex flex-col gap-1">
+        <a href="#services" class="mobile-nav-link">Services</a>
+        <a href="#about" class="mobile-nav-link">About</a>
+        <a href="#contact" class="mobile-nav-link">Contact</a>
+        <div class="mobile-menu-divider"></div>
+        <a href="#" class="btn-webgenix btn-secondary-webgenix btn-md-webgenix w-full">Log in</a>
+        <a href="#" class="btn-webgenix btn-primary-webgenix btn-md-webgenix w-full">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-webgenix" id="main-content">
+    
+    <!-- Hero Section -->
+    <section id="hero" class="relative min-h-screen flex items-center grid-pattern-webgenix overflow-hidden pt-20">
+      <!-- Dynamic gradients -->
+      <div class="absolute inset-0 pointer-events-none hero-gradient-bg" aria-hidden="true"></div>
+      
+      <!-- Animated glass orbs -->
+      <div class="orb orb-1 animate-pulse-glow" aria-hidden="true"></div>
+      <div class="orb orb-2 animate-bounce-slow" aria-hidden="true"></div>
+
+      <div class="container-webgenix section-webgenix relative z-10 w-full py-20 lg-py-32">
+        <div class="max-w-4xl mx-auto text-center">
+          <!-- Eyebrow badge -->
+          <div class="hero-badge animate-fade-in-webgenix">
+            <span class="hero-badge-dot-wrapper">
+              <span class="hero-badge-dot-ping"></span>
+              <span class="hero-badge-dot"></span>
+            </span>
+            <span class="hero-badge-text">
+              Trusted by 10,000+ businesses across India
+            </span>
+          </div>
+
+          <!-- Headline -->
+          <h1 class="hero-headline animate-slide-up-webgenix delay-100">
+            Build Faster. <span class="text-gradient-webgenix">Scale Smarter.</span><br />Go Further.
+          </h1>
+
+          <!-- Subtext -->
+          <p class="hero-subtext animate-slide-up-webgenix delay-200">
+            Enterprise-grade hosting, security, and digital infrastructure — delivered with the simplicity your business deserves.
+          </p>
+
+          <!-- CTA group -->
+          <div class="hero-cta-group animate-slide-up-webgenix delay-300">
+            <a href="#services" class="btn-webgenix btn-primary-webgenix btn-lg-webgenix group shadow-xl">
+              Explore Services
+              <span class="cta-arrow">→</span>
+            </a>
+            <a href="#contact" class="btn-webgenix btn-secondary-webgenix btn-lg-webgenix backdrop-blur-sm">
+              Talk to Sales
+            </a>
+          </div>
+
+          <!-- Stats bar -->
+          <div class="animate-slide-up-webgenix delay-400 mt-20 lg-mt-24">
+            <div class="stats-bar" role="list" aria-label="Key statistics">
+              <div class="stat-item group" role="listitem">
+                <span class="stat-value">99.9%</span>
+                <span class="stat-label">Uptime SLA</span>
+              </div>
+              <div class="stat-item group" role="listitem">
+                <span class="stat-value">24/7</span>
+                <span class="stat-label">Expert Support</span>
+              </div>
+              <div class="stat-item group" role="listitem">
+                <span class="stat-value">10K+</span>
+                <span class="stat-label">Happy Customers</span>
+              </div>
+              <div class="stat-item group" role="listitem">
+                <span class="stat-value">30-Day</span>
+                <span class="stat-label">Money Back</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom transition -->
+      <div class="hero-bottom-transition" aria-hidden="true"></div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="section-webgenix">
+      <div class="container-webgenix">
+        <div class="section-header-webgenix">
+          <div class="badge-webgenix badge-ai-webgenix mb-4 eyebrow-badge">Our Services</div>
+          <h2 class="section-title">Solutions Built for Your Growth</h2>
+          <p class="section-subtitle">From launching your first website to scaling enterprise infrastructure — we've got you covered.</p>
+        </div>
+
+        <div class="tab-list" role="tablist" aria-label="Service categories">
+          <button id="tab-solutions" role="tab" aria-selected="true" aria-controls="tabpanel-solutions" class="tab-btn active">
+            <span>🚀</span> Business Solutions
+          </button>
+          <button id="tab-infrastructure" role="tab" aria-selected="false" aria-controls="tabpanel-infrastructure" class="tab-btn">
+            <span>🧱</span> Infrastructure
+          </button>
+          <button id="tab-addons" role="tab" aria-selected="false" aria-controls="tabpanel-addons" class="tab-btn">
+            <span>🔐</span> Domains, Email & Security
+          </button>
+        </div>
+
+        <p id="tab-description" class="text-center text-text-muted text-sm mb-8">
+          All-in-one packages designed for real business outcomes
+        </p>
+
+        <!-- Solutions Tab Panel -->
+        <div role="tabpanel" id="tabpanel-solutions" class="tab-panel active">
+          <div class="cards-grid grid-cols-4">
+            
+            <!-- LaunchPad Card -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card recommended-card fade-in-scroll">
+              <div class="recommended-ribbon">
+                <span class="pulse-dot"></span> Recommended
+              </div>
+              <div class="mb-6">
+                <h3 class="card-title">LaunchPad</h3>
+                <p class="card-tagline">Go online in 48 hours</p>
+                <div class="target-row">
+                  <span class="target-badge">Target</span>
+                  <p class="target-text">Startups, freelancers, local businesses</p>
+                </div>
+              </div>
+              <div class="mb-8">
+                <p class="setup-fee">₹4,999 SETUP +</p>
+                <div class="price-row">
+                  <span class="price-value">₹499</span>
+                  <span class="price-period">/mo</span>
+                </div>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>Domain + Hosting included</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>1–5 Page Website Setup</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Free SSL Certificate</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Business Email Setup (5 accounts)</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>WhatsApp Integration</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-primary-webgenix w-full text-center mt-4 shadow-lg rounded-xl">Get Started</a>
+            </article>
+
+            <!-- Growth Engine Card -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card recommended-card fade-in-scroll">
+              <div class="recommended-ribbon">
+                <span class="pulse-dot"></span> Recommended
+              </div>
+              <div class="mb-6">
+                <div class="mb-4"><span class="badge-webgenix badge-popular-webgenix">Most Popular</span></div>
+                <h3 class="card-title">Growth Engine</h3>
+                <p class="card-tagline">We handle tech, you grow</p>
+                <div class="target-row">
+                  <span class="target-badge">Target</span>
+                  <p class="target-text">SMEs, growing businesses</p>
+                </div>
+              </div>
+              <div class="mb-8">
+                <div class="price-row">
+                  <span class="price-value">₹2,999</span>
+                  <span class="price-period">/mo</span>
+                </div>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>Managed VPS Hosting</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Unlimited Business Emails</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Free SSL + Security Monitoring</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Daily Backups</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Monthly SEO Optimization</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-primary-webgenix w-full text-center mt-4 shadow-lg rounded-xl">Scale My Business</a>
+            </article>
+
+            <!-- Ecom Stack Card -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card fade-in-scroll">
+              <div class="mb-6">
+                <h3 class="card-title">Ecom Power Stack</h3>
+                <p class="card-tagline">Launch and sell faster</p>
+                <div class="target-row">
+                  <span class="target-badge">Target</span>
+                  <p class="target-text">eCommerce businesses</p>
+                </div>
+              </div>
+              <div class="mb-8">
+                <p class="setup-fee">₹9,999 SETUP +</p>
+                <div class="price-row">
+                  <span class="price-value">₹2,999</span>
+                  <span class="price-period">/mo</span>
+                </div>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>Full Store Setup (Woo/MERN)</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Payment Gateway Integration</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>High-Speed Hosting</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Conversion Optimization</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-secondary-webgenix hover-bg-dark-700 w-full text-center mt-4 rounded-xl">Start Selling</a>
+            </article>
+
+            <!-- DevOps Card -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card fade-in-scroll">
+              <div class="mb-6">
+                <div class="mb-4"><span class="badge-webgenix badge-default-webgenix">Advanced</span></div>
+                <h3 class="card-title">DevOps as a Service</h3>
+                <p class="card-tagline">Enterprise infra without hiring a team</p>
+                <div class="target-row">
+                  <span class="target-badge">Target</span>
+                  <p class="target-text">Developers, SaaS founders</p>
+                </div>
+              </div>
+              <div class="mb-8">
+                <div class="price-row">
+                  <span class="price-value">₹5,000</span>
+                  <span class="price-period">/mo</span>
+                </div>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>VPS Setup & Management</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>CI/CD Pipeline Setup</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Auto Scaling Infrastructure</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Monitoring (Grafana, Prometheus)</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-secondary-webgenix hover-bg-dark-700 w-full text-center mt-4 rounded-xl">Automate My Infra</a>
+            </article>
+
+          </div>
+        </div>
+
+        <!-- Infrastructure Tab Panel (Hidden by default) -->
+        <div role="tabpanel" id="tabpanel-infrastructure" class="tab-panel hidden">
+          <div class="cards-grid grid-cols-4">
+             <!-- Shared Hosting -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card">
+              <div class="mb-6">
+                <h3 class="card-title">Shared Hosting</h3>
+              </div>
+              <div class="mb-8 pt-2">
+                <p class="starting-label">Starting from</p>
+                <p class="starting-price">₹149/mo</p>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>NVMe Storage</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Free SSL</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Email Hosting</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Unmetered Bandwidth</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-secondary-webgenix hover-bg-dark-700 w-full text-center mt-4 rounded-xl">View Plans</a>
+            </article>
+
+            <!-- VPS Servers -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card recommended-card">
+              <div class="mb-6">
+                <div class="mb-4"><span class="badge-webgenix badge-popular-webgenix">Recommended</span></div>
+                <h3 class="card-title">VPS Servers</h3>
+              </div>
+              <div class="mb-8 pt-2">
+                <p class="starting-label">Starting from</p>
+                <p class="starting-price">₹499/mo</p>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>Dedicated Resources</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Full Root Access</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>High Performance NVMe</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Scalable Plans</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-primary-webgenix w-full text-center mt-4 shadow-lg rounded-xl">Explore VPS</a>
+            </article>
+            
+            <!-- Dedicated Servers -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card">
+              <div class="mb-6">
+                <h3 class="card-title">Dedicated Servers</h3>
+              </div>
+              <div class="mb-8 pt-2">
+                <p class="starting-label">Starting from</p>
+                <p class="starting-price">₹12,000/mo</p>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>Xeon / EPYC CPUs</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Up to 512GB RAM</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>RAID Storage</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>1–10 Gbps Network</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-secondary-webgenix hover-bg-dark-700 w-full text-center mt-4 rounded-xl">View Servers</a>
+            </article>
+
+            <!-- Backup Solutions -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card">
+              <div class="mb-6">
+                <h3 class="card-title">Backup Solutions</h3>
+              </div>
+              <div class="mb-8 pt-2">
+                <p class="starting-label">Starting from</p>
+                <p class="starting-price">₹1,200/mo</p>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>Automated Snapshots</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>AES-256 Encryption</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Multi-Region Storage</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-secondary-webgenix hover-bg-dark-700 w-full text-center mt-4 rounded-xl">Secure My Data</a>
+            </article>
+          </div>
+        </div>
+
+        <!-- Addons Tab Panel (Hidden by default) -->
+        <div role="tabpanel" id="tabpanel-addons" class="tab-panel hidden">
+          <div class="cards-grid grid-cols-3">
+            <!-- Domains -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card">
+              <div class="mb-6">
+                <h3 class="card-title">Domain Registration</h3>
+              </div>
+              <div class="mb-8 pt-2">
+                <p class="starting-label">Starting from</p>
+                <p class="starting-price">₹399/year</p>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>.com, .in, .ai & more</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Instant activation</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Free DNS management</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-secondary-webgenix hover-bg-dark-700 w-full text-center mt-4 rounded-xl">Search Domain</a>
+            </article>
+
+            <!-- Email -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card">
+              <div class="mb-6">
+                <h3 class="card-title">Business Email</h3>
+              </div>
+              <div class="mb-8 pt-2">
+                <p class="starting-label">Starting from</p>
+                <p class="starting-price">₹149/mailbox</p>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>Custom domain email</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Spam protection</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>Mobile sync</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-secondary-webgenix hover-bg-dark-700 w-full text-center mt-4 rounded-xl">Get Email</a>
+            </article>
+
+            <!-- SSL -->
+            <article class="card-webgenix card-webgenix-hover flex-col-card">
+              <div class="mb-6">
+                <div class="mb-4"><span class="badge-webgenix badge-popular-webgenix">Popular</span></div>
+                <h3 class="card-title">SSL Certificates</h3>
+              </div>
+              <div class="mb-8 pt-2">
+                <p class="starting-label">Starting from</p>
+                <p class="starting-price">Free – ₹11,999/yr</p>
+              </div>
+              <div class="card-features-wrapper">
+                <div class="divider"></div>
+                <ul class="features-list">
+                  <li><i data-feather="check" class="check-icon"></i> <span>DV, OV, EV options</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>256-bit encryption</span></li>
+                  <li><i data-feather="check" class="check-icon"></i> <span>99% browser compatibility</span></li>
+                </ul>
+              </div>
+              <a href="#contact" class="btn-webgenix btn-md-webgenix btn-secondary-webgenix hover-bg-dark-700 w-full text-center mt-4 rounded-xl">Secure My Site</a>
+            </article>
+          </div>
+        </div>
+
+        <div class="text-center mt-14">
+          <p class="text-text-muted text-sm mb-4">Need something custom? We've got you covered.</p>
+          <a href="#contact" class="btn-webgenix btn-secondary-webgenix btn-md-webgenix">Request Custom Quote →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Webgenix Section -->
+    <section id="about" class="section-webgenix why-us-bg">
+      <div class="container-webgenix">
+        <div class="section-header-webgenix">
+          <div class="badge-webgenix badge-ai-webgenix mb-4 eyebrow-badge">Why Webgenix</div>
+          <h2 class="section-title">Built for Performance. Designed for Growth.</h2>
+          <p class="section-subtitle">Everything you need to launch, manage, and scale your online presence — in one place.</p>
+        </div>
+
+        <div class="cards-grid grid-cols-3">
+          <div class="card-webgenix card-webgenix-hover fade-in-scroll">
+            <div class="feature-icon-box">⚡</div>
+            <h3 class="feature-title">Lightning-Fast NVMe</h3>
+            <p class="feature-desc">All plans run on enterprise NVMe SSDs delivering up to 7000 MB/s read speeds.</p>
+          </div>
+          <div class="card-webgenix card-webgenix-hover fade-in-scroll">
+            <div class="feature-icon-box">🛡️</div>
+            <h3 class="feature-title">99.9% Uptime SLA</h3>
+            <p class="feature-desc">Backed by redundant data centers and a rock-solid SLA with financial guarantees.</p>
+          </div>
+          <div class="card-webgenix card-webgenix-hover fade-in-scroll">
+            <div class="feature-icon-box">🌍</div>
+            <h3 class="feature-title">Global CDN</h3>
+            <p class="feature-desc">Serve content from edge nodes worldwide for ultra-low latency everywhere.</p>
+          </div>
+          <div class="card-webgenix card-webgenix-hover fade-in-scroll">
+            <div class="feature-icon-box">🔒</div>
+            <h3 class="feature-title">Free SSL & Security</h3>
+            <p class="feature-desc">Every plan includes a free SSL certificate and advanced DDoS protection.</p>
+          </div>
+          <div class="card-webgenix card-webgenix-hover fade-in-scroll">
+            <div class="feature-icon-box">📞</div>
+            <h3 class="feature-title">24/7 Expert Support</h3>
+            <p class="feature-desc">Real engineers, not bots. We're available around the clock to help you succeed.</p>
+          </div>
+          <div class="card-webgenix card-webgenix-hover fade-in-scroll">
+            <div class="feature-icon-box">💳</div>
+            <h3 class="feature-title">30-Day Money Back</h3>
+            <p class="feature-desc">Not happy? Get a full refund within 30 days, no questions asked.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section-webgenix">
+      <div class="container-webgenix">
+        <div class="card-glass-webgenix text-center relative overflow-hidden contact-bg fade-in-scroll">
+          <!-- Background glow -->
+          <div class="absolute inset-0 pointer-events-none contact-glow" aria-hidden="true"></div>
+          
+          <div class="relative z-10 max-w-2xl mx-auto">
+            <div class="badge-webgenix badge-ai-webgenix inline-flex mb-4">
+              🚀 Get Started Today
+            </div>
+            <h2 class="text-3xl lg-text-4xl font-bold text-text-primary mb-4 tracking-tight">
+              Ready to launch your<br />
+              <span class="text-gradient-webgenix">next big thing?</span>
+            </h2>
+            <p class="text-text-secondary mb-8">
+              Talk to a Webgenix expert and get a custom solution tailored to your business goals.
+            </p>
+            <div class="flex flex-col sm-flex-row gap-4 justify-center">
+              <a href="mailto:sales@webgenix.com" class="btn-webgenix btn-primary-webgenix btn-lg-webgenix">Email Us</a>
+              <a href="tel:+911800123456" class="btn-webgenix btn-secondary-webgenix btn-lg-webgenix">+91 1800-123-4567</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer-webgenix border-t border-dark-600">
+    <!-- Guarantee bar -->
+    <div class="border-b border-dark-700">
+      <div class="container-webgenix py-6">
+        <div class="flex flex-wrap justify-center gap-6 md-gap-10">
+          <div class="flex items-center gap-2">
+            <i data-feather="shield" class="shield-icon"></i>
+            <span class="text-sm text-text-secondary">99.9% Uptime SLA</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <i data-feather="shield" class="shield-icon"></i>
+            <span class="text-sm text-text-secondary">30-Day Money Back Guarantee on Hosting</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <i data-feather="shield" class="shield-icon"></i>
+            <span class="text-sm text-text-secondary">Free SSL with all hosting plans</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main footer grid -->
+    <div class="container-webgenix py-16">
+      <div class="footer-grid grid-cols-5">
+        <!-- Brand col -->
+        <div class="footer-brand-col col-span-2">
+          <a href="#" class="flex items-center gap-2 mb-4" aria-label="Webgenix">
+            <div class="logo-box">W</div>
+            <span class="text-base font-semibold text-text-primary">
+              Web<span class="text-gradient-webgenix">genix</span>
+            </span>
+          </a>
+          <p class="text-sm text-text-muted mb-4 leading-relaxed">
+            Powering your digital presence with enterprise-grade infrastructure.
+          </p>
+          <div class="flex flex-col gap-1.5 text-sm text-text-muted">
+            <a href="mailto:sales@webgenix.com" class="hover-text-accent transition-colors">sales@webgenix.com</a>
+            <span>+91 1800-123-4567</span>
+            <span class="text-success text-xs font-medium">24/7 Expert Support</span>
+          </div>
+        </div>
+
+        <!-- Links cols -->
+        <div class="footer-links-col">
+          <h4 class="footer-heading">Services</h4>
+          <ul>
+            <li><a href="#">Shared Hosting</a></li>
+            <li><a href="#">VPS Servers</a></li>
+            <li><a href="#">Dedicated Servers</a></li>
+            <li><a href="#">Backup Solutions</a></li>
+          </ul>
+        </div>
+        <div class="footer-links-col">
+          <h4 class="footer-heading">Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Press</a></li>
+          </ul>
+        </div>
+        <div class="footer-links-col">
+          <h4 class="footer-heading">Support</h4>
+          <ul>
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Status Page</a></li>
+            <li><a href="#">SLA</a></li>
+          </ul>
+        </div>
+        <div class="footer-links-col">
+          <h4 class="footer-heading">Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+            <li><a href="#">GDPR</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="footer-bottom flex flex-col md-flex-row justify-between items-center gap-4 pt-10 mt-10 border-t border-dark-700">
+        <p class="text-sm text-text-muted">© <span id="current-year"></span> Webgenix. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <a href="#" class="text-sm text-text-muted hover-text-accent transition-colors">Twitter</a>
+          <a href="#" class="text-sm text-text-muted hover-text-accent transition-colors">LinkedIn</a>
+          <a href="#" class="text-sm text-text-muted hover-text-accent transition-colors">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

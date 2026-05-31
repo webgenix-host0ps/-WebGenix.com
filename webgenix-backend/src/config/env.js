@@ -8,16 +8,26 @@ const __dirname = path.dirname(__filename);
 // Load .env from the backend root directory
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-// Debug: Check if Razorpay credentials are loaded
-console.log('[ENV] RAZORPAY_KEY_ID loaded:', !!process.env.RAZORPAY_KEY_ID);
-console.log('[ENV] RAZORPAY_KEY_SECRET loaded:', !!process.env.RAZORPAY_KEY_SECRET);
+const requiredEnvVars = [
+    ['JWT_ACCESS_SECRET', 'JWT_ACCESS_SECRET'],
+    ['JWT_REFRESH_SECRET', 'JWT_REFRESH_SECRET'],
+    ['MONGODB_URI', 'MONGODB_URI'],
+];
+
+const missing = requiredEnvVars.filter(([key]) => !process.env[key]);
+if (missing.length > 0) {
+    const names = missing.map(([_, name]) => name).join(', ');
+    console.error(`[ENV] FATAL: Missing required environment variables: ${names}`);
+    console.error('[ENV] Please ensure these are set in your .env file.');
+    process.exit(1);
+}
 
 export const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     PORT: parseInt(process.env.PORT, 10) || 5000,
 
     // MongoDB
-    MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/webgenix',
+    MONGODB_URI: process.env.MONGODB_URI,
 
     // JWT
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
@@ -30,7 +40,7 @@ export const env = {
 
     // Email
     SMTP_HOST: process.env.SMTP_HOST,
-    SMTP_PORT: parseInt(process.env.SMTP_PORT, 10),
+    SMTP_PORT: parseInt(process.env.SMTP_PORT, 10) || 587,
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASS: process.env.SMTP_PASS,
     EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@webgenix.com',

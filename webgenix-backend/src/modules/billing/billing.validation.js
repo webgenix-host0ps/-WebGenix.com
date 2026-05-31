@@ -101,3 +101,26 @@ export const getProductSchema = z.object({
         id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ID format'),
     }),
 });
+
+const orderItemSchema = z.object({
+    productId: z.string().min(1),
+    cycle: z.enum(['monthly', 'quarterly', 'semi_annual', 'annual', 'biennial']),
+    quantity: z.number().int().min(1).default(1),
+    configuration: z.record(z.any()).optional(),
+    domain: z.string().optional(),
+    registrationPeriod: z.number().int().optional(),
+    addons: z.array(z.object({
+        addonId: z.string().optional(),
+        _id: z.string().optional(),
+        quantity: z.number().int().min(1).default(1),
+    })).optional(),
+});
+
+export const createOrderSchema = z.object({
+    body: z.object({
+        items: z.array(orderItemSchema).min(1, 'At least one item is required'),
+        paymentMethod: z.string().optional(),
+        promoCode: z.string().optional(),
+        notes: z.string().max(1000).optional(),
+    }),
+});

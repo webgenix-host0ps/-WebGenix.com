@@ -178,7 +178,7 @@ export default function InvoiceDetail() {
                     <td className="py-6">
                       <p className="font-bold text-white print:text-black">{item.description}</p>
                     </td>
-                    <td className="py-6 text-right font-medium text-white print:text-black">₹{item.amount?.toFixed(2)}</td>
+                    <td className="py-6 text-right font-medium text-white print:text-black">₹{item.total?.toFixed(2) || item.amount?.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

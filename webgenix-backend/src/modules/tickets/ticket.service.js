@@ -366,6 +366,58 @@ export const getTicketWithMessages = async (ticketId, user) => {
     return { ticket, messages, clientServices, clientInvoices };
 };
 
+export const getClientSummary = async (ticketId, user) => {
+    let ticket = await Ticket.findById(ticketId)
+        .populate('client', 'name email phone company')
+        .populate('department', 'name');
+
+    if (!ticket && typeof ticketId === 'string') {
+        ticket = await Ticket.findOne({ ticketId })
+            .populate('client', 'name email phone company')
+            .populate('department', 'name');
+    }
+
+    if (!ticket) throw new ApiError(404, 'Ticket not found');
+
+    if (!ticket.client || !ticket.client._id) {
+        throw new ApiError(404, 'Ticket has no associated client');
+    }
+
+    const Service = (await import('../billing/models/Service.js')).default;
+    const Invoice = (await import('../billing/models/Invoice.js')).default;
+    const Order = (await import('../billing/models/Order.js')).default;
+
+    const clientId = ticket.client._id;
+
+    const [services, invoices, orders] = await Promise.all([
+        Service.find({ userId: clientId })
+            .populate('productId', 'name type category slug')
+            .populate('orderId', 'orderNumber')
+            .sort({ createdAt: -1 }),
+        Invoice.find({ userId: clientId })
+            .populate('items.serviceId', 'productName status')
+            .sort({ dateIssued: -1 })
+            .limit(10),
+        Order.find({ userId: clientId })
+            .populate('items.productId', 'name type')
+            .sort({ createdAt: -1 })
+            .limit(10),
+    ]);
+
+    return {
+        client: {
+            _id: ticket.client._id,
+            name: ticket.client.name,
+            email: ticket.client.email,
+            phone: ticket.client.phone,
+            company: ticket.client.company,
+        },
+        services,
+        invoices,
+        orders,
+    };
+};
+
 export const mergeTickets = async (primaryTicketId, sourceTicketIds, userId, req) => {
     const primaryTicket = await Ticket.findById(primaryTicketId);
     if (!primaryTicket) throw new ApiError(404, 'Primary ticket not found');

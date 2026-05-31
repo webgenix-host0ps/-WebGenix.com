@@ -1,0 +1,287 @@
+═══════════════════════════════════════════════════════════════════════════════════
+                          WEBGENIX — IMPROVEMENT ROADMAP
+═══════════════════════════════════════════════════════════════════════════════════
+
+A. TESTING & QUALITY
+───────────────────────────────────────────────────────────────────────────────
+A1. [HIGH] NO TESTING FRAMEWORK
+     package.json test script: "echo \"Error: no test specified\" && exit 1"
+     → Add Vitest (frontend) + Jest/Mocha (backend), write unit/integration tests
+     → Target: API endpoint tests, auth flow tests, billing lifecycle tests
+
+A2. [MEDIUM] NO FRONTEND TESTING
+     Zero component tests, no React Testing Library setup
+     → Add Vitest + @testing-library/react for component-level tests
+
+A3. [MEDIUM] NO E2E TESTS
+     No Playwright or Cypress for full user-journey testing
+     → Add Playwright: test registration → purchase → ticket creation flow
+
+A4. [MEDIUM] NO TYPE CHECKING
+     Backend uses plain JS, frontend uses plain JSX (no TypeScript)
+     → Migrate to TypeScript for type safety (gradual adoption via JSDoc first)
+
+A5. [HIGH] LINTING INCOMPLETE
+     Frontend has ESLint config but no lint script for backend
+     → Add ESLint + Prettier to backend, enforce consistent code style
+
+B. MONITORING & OBSERVABILITY
+───────────────────────────────────────────────────────────────────────────────
+B1. [HIGH] NO CENTRALIZED LOGGING
+     Console-based logger (simple timestamps), no log levels or transports
+     → Replace with Winston/Pino: file rotation, log levels, JSON output
+
+B2. [MEDIUM] NO APM / PERFORMANCE MONITORING
+     No Sentry, Datadog, New Relic, or OpenTelemetry instrumentation
+     → Add Sentry for error tracking + performance traces
+
+B3. [LOW] NO HEALTH CHECK ENDPOINTS FOR DEPENDENCIES
+     Single /api/health returns "OK" — no MongoDB check
+     → Add MongoDB ping check, response time, memory usage to health endpoint
+
+C. DATABASE & DATA INTEGRITY
+───────────────────────────────────────────────────────────────────────────────
+C1. [HIGH] NO DATABASE TRANSACTIONS
+     Code explicitly notes "local MongoDB standalone does not support transactions"
+     → Upgrade to MongoDB replica set for transaction support
+     → Use transactions for critical paths: order creation, payment capture
+
+C2. [MEDIUM] NO INDEXING AUDIT
+     Schemas have some indexes but no comprehensive audit of query patterns
+     → Analyze slow queries, add compound indexes for common filters (status+userId, etc.)
+
+C3. [MEDIUM] NO DATA MIGRATION SYSTEM
+     Schema changes applied manually — no migration framework
+     → Add migrate-mongo or custom migration runner for versioned schema changes
+
+C4. [LOW] NO SOFT DELETE PATTERN
+     Many models support hard deletion — no archived/trashed state
+     → Add isDeleted/deletedAt fields to User, Product, Ticket for safe recovery
+
+C5. [MEDIUM] NO BACKUP VERIFICATION
+     Backup script exists but no automated restore test or verification
+     → Add backup integrity check, automated restore test in CI
+
+D. SECURITY
+───────────────────────────────────────────────────────────────────────────────
+D1. [HIGH] NO RATE LIMITING ON LOGIN
+     Auth module has rate limiting but no account lockout after N failed attempts
+     → Track failed login attempts per email, temporary lockout (e.g., 15min after 5 fails)
+
+D2. [MEDIUM] PASSWORD POLICY TOO BASIC
+     Zod validation: min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special
+     → Add common-password check (rockyou.txt top 10k), max age enforcement
+
+D3. [MEDIUM] NO CSRF PROTECTION
+     JWT in localStorage is vulnerable to XSS-driven token theft
+     → Move access token to httpOnly cookie on auth domain, implement CSRF token
+
+D4. [MEDIUM] NO API KEY SYSTEM
+     No way for external services to call APIs programmatically
+     → Add API key generation with scoped permissions for integrations
+
+D5. [LOW] NO IP WHITELISTING
+     Admin routes not restricted by IP
+     → Add optional IP whitelist middleware for admin/billing routes
+
+D6. [HIGH] ENV FILE COMMITTED?
+     .env files present in repo — may contain secrets
+     → Ensure .env is in .gitignore, use .env.example only
+
+E. PAYMENTS & BILLING
+───────────────────────────────────────────────────────────────────────────────
+E1. [HIGH] NO PAYMENT RETRY LOGIC
+     Failed payments not retried automatically
+     → Add smart dunning: retry at day 3, 7, 14 with decreasing amounts or partial
+
+E2. [MEDIUM] STRIPE INTEGRATION PARTIAL
+     Stripe service exists but unused in payment flow
+     → Complete Stripe integration as a payment option alongside Razorpay
+
+E3. [HIGH] NO REFUND WORKFLOW
+     Refund function exists in service but no UI or admin workflow
+     → Build refund UI in admin panel, handle partial/full refund with reversal
+
+E4. [MEDIUM] NO SUBSCRIPTION MANAGEMENT
+     Services are auto-renewed via cron but no native subscription model
+     → Add Stripe/Razorpay subscription sync, cancellation at gateway level
+
+E5. [MEDIUM] NO TAX CALCULATION AT CHECKOUT
+     Tax rules defined but not applied during order creation
+     → Integrate tax engine into invoice calculation
+
+E6. [LOW] NO MULTI-CURRENCY SUPPORT
+     All pricing in USD — no currency conversion
+     → Add currency model, exchange rate provider, per-currency pricing
+
+E7. [MEDIUM] NO INVOICE EMAILING
+     PDF generation works but invoices not sent via email
+     → Auto-email invoices on creation and overdue reminders
+
+F. USER EXPERIENCE & FRONTEND
+───────────────────────────────────────────────────────────────────────────────
+F1. [HIGH] NO LOADING/SKELETON STATES
+     Many pages show raw loading indicators, no skeleton screens
+     → Add skeleton components for dashboard, ticket list, service pages
+
+F2. [MEDIUM] NO OPTIMISTIC UPDATES
+     UI waits for server response before updating state
+     → Use React Query optimistic updates for mutations (ticket reply, status change)
+
+F3. [LOW] NO PAGINATION ON ADMIN TABLES
+     DataTable component exists but infinite scroll may not handle millions of rows
+     → Add server-side pagination, sort, filter for admin list pages
+
+F4. [MEDIUM] NO NOTIFICATION SYSTEM (FRONTEND)
+     Backend has Notification model but no frontend display
+     → Build notification bell dropdown with real-time updates
+
+F5. [HIGH] NO REAL-TIME UPDATES
+     No WebSocket/Socket.IO — users must refresh to see ticket replies or status changes
+     → Add Socket.IO for real-time: ticket messages, notification badges, order status
+
+F6. [MEDIUM] NO MOBILE RESPONSIVENESS AUDIT
+     Dashboard layout may not be fully responsive
+     → Audit all pages at 375px, 768px, 1024px, 1440px breakpoints
+
+F7. [MEDIUM] NO OFFLINE STATE HANDLING
+     Network errors show generic toast — no offline indicator
+     → Add navigator.onLine detection, queue failed mutations for retry
+
+F8. [LOW] NO KEYBOARD SHORTCUTS
+     Support agents could benefit from keyboard navigation (Ctrl+Enter to reply, etc.)
+     → Add hotkey system for power users
+
+F9. [LOW] NO THEME PERSISTENCE
+     Dark theme only — no light mode toggle
+     → Add theme switcher with localStorage persistence
+
+G. PERFORMANCE
+───────────────────────────────────────────────────────────────────────────────
+G1. [MEDIUM] NO DATABASE QUERY OPTIMIZATION
+     No .select() or .lean() usage in most queries — returns full Mongoose docs
+     → Add .lean() for read-only queries, .select() for field restriction
+
+G2. [MEDIUM] NO RESPONSE COMPRESSION
+     Large invoice PDFs and API responses not compressed
+     → Add compression middleware (express.js built-in or shrink-ray)
+
+G3. [LOW] NO CDN FOR STATIC ASSETS
+     Frontend served through Nginx — no CDN
+     → Add CloudFront/CDN for dist/ assets, cache headers
+
+G4. [LOW] NO LAZY LOADING FOR ROUTES
+     All components eagerly imported in App.jsx
+     → Use React.lazy + Suspense for route-level code splitting
+
+G5. [MEDIUM] NO SERVER-SIDE CACHING
+     Frequent queries (product list, settings) not cached
+     → Add in-memory cache (node-cache) with TTL for slow-moving data
+
+G6. [MEDIUM] NO IMAGE OPTIMIZATION
+     Uploaded images served as-is — no resizing or format conversion
+     → Add Sharp middleware for automatic image optimization on upload
+
+H. DEPLOYMENT & DEVOPS
+───────────────────────────────────────────────────────────────────────────────
+H1. [HIGH] NO CI/CD PIPELINE
+     No GitHub Actions, no automated build/test/deploy
+     → Add CI pipeline: lint → test → build → docker → deploy
+
+H2. [MEDIUM] NO SECRET MANAGEMENT
+     Env vars passed through .env files — no Vault or AWS Secrets Manager
+     → Use Docker secrets or cloud provider secret manager for production
+
+H3. [MEDIUM] NO DATABASE MIGRATIONS IN DEPLOY
+     Schema changes require manual MongoDB commands
+     → Automate migration execution in deployment pipeline
+
+H4. [MEDIUM] NO BLUE-GREEN / ZERO-DOWNTIME DEPLOY
+     Docker compose restart causes brief downtime
+     → Add rolling updates with health check gates
+
+I. FEATURE GAPS
+───────────────────────────────────────────────────────────────────────────────
+I1. [HIGH] NO CLIENT PORTAL SELF-SERVICE
+     Clients cannot: update payment method, view download products, request cancellation
+     → Add payment method management, product downloads, cancellation request flow
+
+I2. [MEDIUM] NO AFFILIATE SYSTEM
+     No referral tracking or commission management
+     → Add affiliate program: referral links, commission tiers, payout requests
+
+I3. [MEDIUM] NO ORDER FRAUD DETECTION
+     No IP geolocation check, velocity check, or fraud scoring
+     → Add fraud rules: max X orders per hour, known-bad IPs, manual review flag
+
+I4. [MEDIUM] NO TICKET SLA ENFORCEMENT
+     No auto-escalation if ticket not replied within N hours
+     → Add SLA rules per department, auto-escalate to senior staff on timeout
+
+I5. [MEDIUM] NO MASS MAILING / NEWSLETTER
+     Email templates exist but no bulk-send capability
+     → Add broadcast: send to all clients, filtered by service/product
+
+I6. [MEDIUM] NO PROVISIONING AUTOMATION
+     Services created but no actual server provisioning (cPanel API, WHM, etc.)
+     → Add module system for auto-provisioning: cPanel, Plesk, Vultr, AWS
+
+I7. [LOW] NO API DOCUMENTATION
+     No Swagger/OpenAPI spec for the backend API
+     → Add swagger-jsdoc + swagger-ui-express
+
+I8. [LOW] NO IMPORT/EXPORT TOOLS
+     No CSV import for users, products, or leads
+     → Add bulk CSV/Excel import/export for admin
+
+I9. [LOW] NO WHMCS MIGRATION TOOL
+     No way to import from WHMCS (the competing platform)
+     → Build WHMCS-to-WebGenix migration script (clients, products, invoices)
+
+I10. [LOW] NO ACTIVITY LOG VIEWER IN UI
+      Audit log exists in DB but no frontend page to view it
+      → Build audit log viewer with filters (user, action, date range)
+
+J. CODE QUALITY & MAINTAINABILITY
+───────────────────────────────────────────────────────────────────────────────
+J1. [MEDIUM] NO SEED DATA FOR DEVELOPMENT
+      Only seedUsers.js exists — no products, services, or demo data seeder
+      → Create comprehensive seed script for local dev (products, pricing, tickets)
+
+J2. [MEDIUM] HARDCODED CONSTANTS IN MULTIPLE PLACES
+      Role strings, status values, cycle types duplicated across files
+      → Consolidate all constants into the constants/ directory, import everywhere
+
+J3. [LOW] NO API VERSIONING
+      All routes under /api/ — no version prefix
+      → Add /api/v1/ prefix for future backward compatibility
+
+J4. [LOW] NO CONTRIBUTING GUIDELINES
+      No CONTRIBUTING.md or commit convention
+      → Add contribution guide, conventional commits, husky pre-commit hooks
+
+J5. [HIGH] NO ENVIRONMENT-SPECIFIC CONFIG
+      Single .env for all environments — no dev/staging/prod separation
+      → Add environment-specific config files with .env validation schema
+
+K. USER-SPECIFIC IMPROVEMENTS (FROM CONVERSATION HISTORY)
+───────────────────────────────────────────────────────────────────────────────
+K1. Web Securities services content not yet populated
+K2. Admin CRUD UI for svc_services not yet built
+K3. Delivery details form needs end-to-end testing
+K4. CORS fix in dev mode accepted any localhost:\d+ — should restrict to known ports in production
+K5. Several ImportError and TypeError bugs were fixed — systematic audit needed
+
+═══════════════════════════════════════════════════════════════════════════════════
+PRIORITY QUICK WINS (could be done in 1-2 days)
+───────────────────────────────────────────────────────────────────────────────
+1. A5 — Add ESLint to backend
+2. F4 — Wire up Notification model to frontend badge/dropdown
+3. F5 — Add Socket.IO for real-time ticket updates
+4. J2 — Consolidate duplicated constants
+5. K2 — Build admin svc_services CRUD
+6. G4 — Add React.lazy route splitting
+7. B1 — Replace console logger with Winston/Pino
+8. I10 — Build audit log viewer page
+
+═══════════════════════════════════════════════════════════════════════════════════

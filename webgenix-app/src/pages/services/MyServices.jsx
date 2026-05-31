@@ -290,16 +290,14 @@ export default function MyServices() {
 
                                     <div className="flex flex-row xl:flex-col justify-end xl:justify-center gap-3 xl:w-[20%]">
                                         <button 
-                                            onClick={() => navigate(`/services/${service._id}`)}
+                                            onClick={() => navigate(`/my-services/${service._id}/manage`)}
                                             className="flex-1 xl:flex-none px-6 py-3 bg-accent hover:bg-accent-hover text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-accent/20 text-center"
                                         >
                                             Manage Plan
                                         </button>
                                         <button 
                                             onClick={() => {
-                                                // In a real WHMCS-like system, this might generate an invoice or add to cart.
-                                                // Here we redirect to the manage plan view where the renew button sits, or trigger an alert.
-                                                navigate(`/services/${service._id}`);
+                                                navigate(`/my-services/${service._id}`);
                                             }}
                                             className="flex-1 xl:flex-none px-6 py-3 bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.05] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all text-center"
                                         >

@@ -35,9 +35,7 @@ export default function AdminOrderDetail() {
   const handleUpdateStatus = async (status) => {
     if (window.confirm(`Are you sure you want to change order status to ${status}?`)) {
       try {
-        // Assume adminService has updateOrderStatus or we use a generic update
-        // For now, let's see if we have it. If not, I'll add it.
-        // await adminService.updateOrderStatus(id, status);
+        await adminService.updateOrderStatus(id, status);
         toast.success(`Order status updated to ${status}`);
         fetchOrder();
       } catch (err) {

@@ -148,7 +148,7 @@ export default function InvoiceFormModal({ isOpen, onClose, onSave, initialData 
           <div className="bg-dark-900 p-4 rounded-xl border border-dark-700 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-text-secondary">Subtotal:</span>
-              <span className="text-text-primary">${calculateSubtotal().toFixed(2)}</span>
+              <span className="text-text-primary">₹{calculateSubtotal().toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-text-secondary">Tax Rate (%):</span>
@@ -164,7 +164,7 @@ export default function InvoiceFormModal({ isOpen, onClose, onSave, initialData 
             </div>
             <div className="border-t border-dark-700 pt-3 flex justify-between font-bold text-lg text-text-primary">
               <span>Total:</span>
-              <span>${calculateTotal().toFixed(2)}</span>
+              <span>₹{calculateTotal().toFixed(2)}</span>
             </div>
           </div>
         </div>

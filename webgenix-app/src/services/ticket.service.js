@@ -63,3 +63,8 @@ export const getDepartments = async () => {
     const response = await api.get('/tickets/departments');
     return response.data;
 };
+
+export const getClientSummary = async (ticketId) => {
+    const response = await api.get(`/tickets/${ticketId}/client-summary`);
+    return response.data;
+};

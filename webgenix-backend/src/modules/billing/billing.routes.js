@@ -9,6 +9,7 @@ import {
     updateProductSchema,
     productQuerySchema,
     getProductSchema,
+    createOrderSchema,
 } from './billing.validation.js';
 import { ROLES } from '../../constants/tickets.js';
 
@@ -27,12 +28,9 @@ router.use(authMiddleware);
 // ============ PROTECTED PRODUCT ROUTES ============
 
 // Get featured products (public)
+// Public product routes (no auth required)
 router.get('/products/featured', billingController.getFeaturedProducts);
-
-// Get product by slug (public)
 router.get('/products/slug/:slug', billingController.getProductBySlug);
-
-// Get product categories (public)
 router.get('/products/categories', billingController.getProductCategories);
 
 // Get single product
@@ -41,7 +39,7 @@ router.get('/products/:id', validate(getProductSchema), billingController.getPro
 // ============ PROTECTED ORDER/INVOICE ROUTES ============
 
 // Create order (checkout)
-router.post('/orders', billingController.createOrder);
+router.post('/orders', validate(createOrderSchema), billingController.createOrder);
 
 // Get user's orders
 router.get('/orders', billingController.listOrders);
@@ -64,6 +62,7 @@ router.post('/promocode/validate', billingController.validatePromoCode);
 
 // ============ SERVICES (User's active services) ============
 router.get('/services', billingController.getUserServices);
+router.get('/services/:id', billingController.getService);
 
 // Billing dashboard stats
 router.get('/stats', billingController.getBillingStats);
@@ -71,9 +70,14 @@ router.get('/stats', billingController.getBillingStats);
 // Credit balance
 router.get('/credits', billingController.getCredits);
 
+// Service delivery details (admin, billing, and support)
+router.get('/admin/services/:id/delivery', roleMiddleware(ROLES.ADMIN, ROLES.BILLING, ROLES.SUPPORT), billingController.getServiceDelivery);
+router.put('/admin/services/:id/delivery', roleMiddleware(ROLES.ADMIN, ROLES.BILLING, ROLES.SUPPORT), billingController.updateServiceDelivery);
+router.patch('/admin/services/:id/delivery', roleMiddleware(ROLES.ADMIN, ROLES.BILLING, ROLES.SUPPORT), billingController.updateServiceDelivery);
+
 // ============ ADMIN ONLY ROUTES ============
 
-router.use(roleMiddleware([ROLES.ADMIN, ROLES.BILLING]));
+router.use(roleMiddleware(ROLES.ADMIN, ROLES.BILLING));
 
 // Products CRUD
 router.post('/products', validate(createProductSchema), billingController.createProduct);
@@ -86,6 +90,10 @@ router.post('/products/:id/duplicate', billingController.duplicateProduct);
 router.get('/admin/invoices', billingController.listAllInvoices);
 router.post('/admin/invoices', billingController.createInvoice);
 router.patch('/admin/invoices/:id/status', billingController.updateInvoiceStatus);
+
+// All orders (admin)
+router.get('/admin/orders', billingController.listAllOrders);
+router.patch('/admin/orders/:id/status', billingController.updateOrderStatus);
 
 // All services (admin)
 router.get('/admin/services', billingController.listAllServices);

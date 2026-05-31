@@ -34,7 +34,8 @@ export const createOrder = async (orderData, req) => {
             throw new ApiError(400, `Pricing for cycle ${item.cycle} not available`);
         }
         
-        const itemTotal = pricing.price + (pricing.setupFee || 0);
+        const quantity = item.quantity || 1;
+        const itemTotal = (pricing.price + (pricing.setupFee || 0)) * quantity;
         
         orderItems.push({
             productId: product._id,
@@ -499,6 +500,25 @@ export const listOrders = async (userId, filters, pagination) => {
     };
 };
 
+export const listAllOrders = async (filters, pagination) => {
+    let { page = 1, limit = 20 } = pagination;
+    limit = Math.min(parseInt(limit), 100);
+    page = Math.max(parseInt(page), 1);
+    const query = {};
+    if (filters.status) query.status = filters.status;
+    const skip = (page - 1) * limit;
+    const [orders, total] = await Promise.all([
+        Order.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+        Order.countDocuments(query),
+    ]);
+    return {
+        orders,
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+    };
+};
+
 export const cancelOrder = async (orderId, userId, reason, req) => {
     try {
         const order = await Order.findById(orderId);
@@ -543,6 +563,41 @@ export const cancelOrder = async (orderId, userId, reason, req) => {
     } catch (error) {
         throw error;
     }
+};
+
+export const updateOrderStatus = async (orderId, status, reason, req) => {
+    const order = await Order.findById(orderId);
+    if (!order) {
+        throw new ApiError(404, 'Order not found');
+    }
+
+    const oldStatus = order.status;
+    order.status = status;
+    if (reason) order.notes = reason;
+
+    if (status === 'cancelled' && order.invoiceId) {
+        await Invoice.findByIdAndUpdate(order.invoiceId, {
+            status: INVOICE_STATUS.CANCELLED,
+        });
+    }
+
+    order.history.push({
+        date: new Date(),
+        status: status,
+        description: reason || `Status changed from ${oldStatus} to ${status}`,
+        userId: req.userId,
+    });
+
+    await order.save();
+
+    await logAction({
+        userId: req.userId,
+        action: 'order.status_updated',
+        metadata: { orderId: order._id, oldStatus, newStatus: status, reason },
+        req,
+    });
+
+    return order;
 };
 
 export const calculateProration = async (serviceId, newCycle) => {

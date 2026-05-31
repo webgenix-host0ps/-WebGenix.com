@@ -1,8 +1,10 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
+import mongoose from 'mongoose';
 import * as productService from './services/product.service.js';
 import * as billingService from './services/billing.service.js';
 import PromoCode from './models/PromoCode.js';
 import Service from './models/Service.js';
+import Invoice from './models/Invoice.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { generateInvoicePDF } from '../../services/invoice-pdf.service.js';
 
@@ -167,10 +169,35 @@ export const listOrders = asyncHandler(async (req, res) => {
     });
 });
 
+export const listAllOrders = asyncHandler(async (req, res) => {
+    const filters = { status: req.query.status };
+    const pagination = { page: req.query.page, limit: req.query.limit };
+    const result = await billingService.listAllOrders(filters, pagination);
+    res.json({
+        success: true,
+        data: result.orders,
+        meta: { total: result.total, page: result.page, pages: result.pages },
+    });
+});
+
 export const cancelOrder = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { reason } = req.body;
     const order = await billingService.cancelOrder(id, req.userId, reason, req);
+    res.json({
+        success: true,
+        data: order,
+    });
+});
+
+export const updateOrderStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status, reason } = req.body;
+    const validStatuses = ['pending', 'processing', 'completed', 'cancelled', 'fraud', 'refunded'];
+    if (!validStatuses.includes(status)) {
+        throw new ApiError(400, `Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+    }
+    const order = await billingService.updateOrderStatus(id, status, reason, req);
     res.json({
         success: true,
         data: order,
@@ -438,34 +465,58 @@ export const getBillingStats = asyncHandler(async (req, res) => {
 
     const [
         monthlyRevenue,
-        totalUnpaid,
+        unpaidInvoices,
         overdueCount,
         paidTodayCount,
         activeServices,
         totalInvoices
     ] = await Promise.all([
         Invoice.aggregate([
-            { $match: { status: 'paid', datePaid: { $gte: startOfMonth } } },
+            { $match: { userId: new mongoose.Types.ObjectId(userId), status: 'paid', datePaid: { $gte: startOfMonth } } },
             { $group: { _id: null, total: { $sum: '$total' } } }
         ]),
-        Invoice.countDocuments({ status: 'unpaid' }),
-        Invoice.countDocuments({ status: 'unpaid', dueDate: { $lt: now } }),
-        Invoice.countDocuments({ status: 'paid', datePaid: { $gte: startOfToday } }),
-        Service.countDocuments({ status: 'active' }),
-        Invoice.countDocuments()
+        Invoice.aggregate([
+            { $match: { userId: new mongoose.Types.ObjectId(userId), status: 'unpaid' } },
+            { $group: { _id: null, total: { $sum: '$amountDue' } } }
+        ]),
+        Invoice.countDocuments({ userId, status: 'unpaid', dueDate: { $lt: now } }),
+        Invoice.countDocuments({ userId, status: 'paid', datePaid: { $gte: startOfToday } }),
+        Service.countDocuments({ userId, status: 'active' }),
+        Invoice.countDocuments({ userId })
     ]);
 
     res.json({
         success: true,
         data: {
             monthlyRevenue: monthlyRevenue[0]?.total || 0,
-            outstandingBalance: totalUnpaid > 0 ? totalUnpaid : 0,
+            outstandingBalance: unpaidInvoices[0]?.total || 0,
             overdueInvoices: overdueCount,
             paidToday: paidTodayCount,
             activeServices,
             totalInvoices
         }
     });
+});
+
+export const getService = asyncHandler(async (req, res) => {
+    const service = await Service.findOne({ _id: req.params.id, userId: req.userId })
+        .populate('productId');
+    if (!service) throw new ApiError(404, 'Service not found');
+    res.json({ success: true, data: service });
+});
+
+export const getServiceDelivery = asyncHandler(async (req, res) => {
+    const service = await Service.findById(req.params.id).select('+password');
+    if (!service) throw new ApiError(404, 'Service not found');
+    res.json({ success: true, data: { deliveryDetails: service.deliveryDetails || {} } });
+});
+
+export const updateServiceDelivery = asyncHandler(async (req, res) => {
+    const service = await Service.findById(req.params.id);
+    if (!service) throw new ApiError(404, 'Service not found');
+    service.deliveryDetails = req.body.deliveryDetails || {};
+    await service.save();
+    res.json({ success: true, data: { deliveryDetails: service.deliveryDetails } });
 });
 
 export const getCredits = asyncHandler(async (req, res) => {

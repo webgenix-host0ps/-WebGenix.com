@@ -86,6 +86,13 @@ const serviceSchema = new Schema({
         default: true,
     },
     
+    // Delivery details (server credentials, cPanel info, etc. — populated by staff after provisioning)
+    deliveryDetails: {
+        type: Map,
+        of: Schema.Types.Mixed,
+        default: {},
+    },
+
     // Provisioning
     module: {
         type: String,
